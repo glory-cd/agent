@@ -1,7 +1,7 @@
 # Agent
 
 [![Build Status](https://travis-ci.com/auto-cdp/agent.svg?branch=master)](https://travis-ci.com/auto-cdp/agent)
-![LICENSE](https://img.shields.io/badge/license-MIT-orange.svg)
+![LICENSE](https://img.shields.io/badge/license-GPLv3-blue.svg)
 ![LICENSE](https://img.shields.io/badge/license-Anti%20996-blue.svg?style=flat-square)
 
 
