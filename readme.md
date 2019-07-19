@@ -1,3 +1,5 @@
+![LICENSE](https://img.shields.io/badge/license-Anti%20996-blue.svg?style=flat-square)
+
 ## 前提条件
 ### 1. 代码包内容为`以模块名称命名的目录的压缩包`，可支持`zip` 、`tar.gz`格式，例如：
 ```shell
