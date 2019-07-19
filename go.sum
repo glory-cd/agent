@@ -30,8 +30,6 @@ github.com/alecthomas/units v0.0.0-20190717042225-c3de453c63f4 h1:Hs82Z41s6SdL1C
 github.com/alecthomas/units v0.0.0-20190717042225-c3de453c63f4/go.mod h1:ybxpYRFXyAe+OPACYpWeL0wqObRcbAqCMya13uyzqw0=
 github.com/anmitsu/go-shlex v0.0.0-20161002113705-648efa622239/go.mod h1:2FmKhYUyUczH0OGQWaF5ceTx0UBShxjsH6f8oGKYe2c=
 github.com/apache/thrift v0.12.0/go.mod h1:cp2SuWMxlEZw2r+iP2GNCdIi4C1qmUzdZFSVb+bacwQ=
-github.com/auto-cdp/utils v0.0.0-20190719044137-2042e3cee7f1 h1:c8NusiKt5L14C2g0irRM4iVU1CANfaRv5DafPh7B/Oc=
-github.com/auto-cdp/utils v0.0.0-20190719044137-2042e3cee7f1/go.mod h1:QJF2oLUigSUQ2HokcNjjafXpe/wrfd7ADxDYHtSLbA0=
 github.com/auto-cdp/utils v0.0.0-20190719052356-c6d45e7bc0b5 h1:pf73szf1rfujGVYGW0OvgCoebryoCKnq+Giv8RSCYUg=
 github.com/auto-cdp/utils v0.0.0-20190719052356-c6d45e7bc0b5/go.mod h1:ohI9pRvzi6T6K5Xu7lhaF0QOzIsjp32GHxjr/2VjXtg=
 github.com/aws/aws-sdk-go v1.15.78 h1:LaXy6lWR0YK7LKyuU0QWy2ws/LWTPfYV/UgfiBu4tvY=
