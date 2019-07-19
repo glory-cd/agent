@@ -2,7 +2,7 @@ package common
 
 
 import (
-	"utils/log"
+	"github.com/auto-cdp/utils/log"
 )
 
 func InitLog() {

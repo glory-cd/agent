@@ -5,14 +5,12 @@
 package executor
 
 import (
-	"agent/common"
 	"bytes"
 	"encoding/json"
-	"utils/afis"
-	"utils/log"
+	"github.com/auto-cdp/agent/common"
+	"github.com/auto-cdp/utils/afis"
+	"github.com/auto-cdp/utils/log"
 )
-
-
 
 func NewServiceFromJson(sjson string) (Service, error) {
 	var s Service
@@ -20,7 +18,7 @@ func NewServiceFromJson(sjson string) (Service, error) {
 	if err != nil {
 		return s, err
 	}
-	log.Slogger.Debugw("generate service id.","agentid", common.AgentID, "dir", s.Dir)
+	log.Slogger.Debugw("generate service id.", "agentid", common.AgentID, "dir", s.Dir)
 	s.ServiceID = afis.GetMd5String(common.AgentID + s.Dir)
 	return s, nil
 }
@@ -33,5 +31,3 @@ func NewJsonFromService(s Service) (string, error) {
 	}
 	return sjson, nil
 }
-
-

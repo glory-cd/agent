@@ -5,10 +5,10 @@
 package core
 
 import (
-	"agent/common"
-	"agent/executor"
+	"github.com/auto-cdp/agent/common"
+	"github.com/auto-cdp/agent/executor"
+	"github.com/auto-cdp/utils/log"
 	"strings"
-	"utils/log"
 )
 
 var CurAgent *Agent

@@ -1,6 +1,6 @@
 package executor
 
-import "agent/common"
+import "github.com/auto-cdp/agent/common"
 
 func (t *Executor) Execute() (resultJson string) {
 	var dr Drive

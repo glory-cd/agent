@@ -7,7 +7,9 @@
 package executor
 
 import (
-	"agent/common"
+	"github.com/auto-cdp/agent/common"
+	"github.com/auto-cdp/utils/afis"
+	"github.com/auto-cdp/utils/log"
 	"github.com/mholt/archiver"
 	"github.com/pkg/errors"
 	"io/ioutil"
@@ -16,8 +18,6 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
-	"utils/afis"
-	"utils/log"
 )
 
 type Upgrade struct {

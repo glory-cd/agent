@@ -7,16 +7,16 @@
 package executor
 
 import (
-	"agent/common"
 	"bytes"
+	"github.com/auto-cdp/agent/common"
+	"github.com/auto-cdp/utils/afis"
+	"github.com/auto-cdp/utils/log"
 	"github.com/pkg/errors"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path"
 	"time"
-	"utils/afis"
-	"utils/log"
 )
 
 type Deploy struct {

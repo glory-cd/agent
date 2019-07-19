@@ -1,15 +1,15 @@
 package core
 
 import (
-	"agent/common"
-	"agent/executor"
 	"bytes"
 	"fmt"
+	"github.com/auto-cdp/agent/common"
+	"github.com/auto-cdp/agent/executor"
+	"github.com/auto-cdp/utils/log"
 	"github.com/google/go-cmp/cmp"
 	"github.com/gorilla/mux"
 	"io/ioutil"
 	"net/http"
-	"utils/log"
 )
 
 func startRestful() {

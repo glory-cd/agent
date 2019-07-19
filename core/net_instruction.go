@@ -5,13 +5,13 @@
 package core
 
 import (
-	"agent/common"
-	"agent/executor"
 	"encoding/json"
 	"fmt"
+	"github.com/auto-cdp/agent/common"
+	"github.com/auto-cdp/agent/executor"
+	"github.com/auto-cdp/utils/log"
 	"strconv"
 	"strings"
-	"utils/log"
 )
 
 func dealReceiveInstruction(ins string) {

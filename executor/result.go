@@ -5,8 +5,8 @@
 package executor
 
 import (
-	"agent/common"
 	"encoding/json"
+	"github.com/auto-cdp/agent/common"
 )
 
 type Result struct {
@@ -24,7 +24,6 @@ type ResultStep struct {
 	ResultTime int64                    `json:"steptime"`
 }
 
-
 func NewResultPointer(id Identiy) *Result {
 	var r = new(Result)
 	r.Identiy = id
@@ -41,7 +40,6 @@ func (r *Result) ToJsonString() (string, error) {
 	return string(resultbyte), nil
 
 }
-
 
 //构造StepInfo
 func (r *Result) AppendResultStep(stepnum int, stepname string, stepstate common.ExecuteReturnCode, stepmsg string, rtime int64) {

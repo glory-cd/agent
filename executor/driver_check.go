@@ -7,7 +7,9 @@
 package executor
 
 import (
-	"agent/common"
+	"github.com/auto-cdp/agent/common"
+	"github.com/auto-cdp/utils/afis"
+	"github.com/auto-cdp/utils/log"
 	"github.com/pkg/errors"
 	"github.com/shirou/gopsutil/process"
 	"io/ioutil"
@@ -15,8 +17,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"utils/afis"
-	"utils/log"
 )
 
 type Check struct {

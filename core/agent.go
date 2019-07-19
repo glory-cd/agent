@@ -5,11 +5,11 @@
 package core
 
 import (
-	"agent/executor"
+	"github.com/auto-cdp/agent/executor"
+	"github.com/auto-cdp/utils/afis"
 	"github.com/pkg/errors"
 	"log"
 	"strings"
-	"utils/afis"
 )
 
 type Agent struct {

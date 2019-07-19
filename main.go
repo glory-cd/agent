@@ -5,7 +5,7 @@
 package main
 
 import (
-	"agent/core"
+	"github.com/auto-cdp/agent/core"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 

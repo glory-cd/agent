@@ -2,10 +2,10 @@ package core
 
 import (
 	"encoding/json"
+	"github.com/auto-cdp/utils/log"
 	"os"
 	"os/signal"
 	"syscall"
-	"utils/log"
 )
 
 //信号处理函数
@@ -45,31 +45,31 @@ func dealReceiveGraceCMD(graceJson string) {
 
 	err := json.Unmarshal([]byte(graceJson), &m)
 
-	if err != nil{
+	if err != nil {
 		log.Slogger.Errorf("ConvertGraceJsonTOMapObject Err:[%s]", err.Error())
 		return
 	}
 
 	p, err := os.FindProcess(os.Getpid())
-	if err != nil{
+	if err != nil {
 		log.Slogger.Errorf("FindProcess Err:[%s]", err.Error())
 		return
 	}
 
-	switch m["gracecmd"]{
+	switch m["gracecmd"] {
 	case "SIGHUP":
 		err = p.Signal(syscall.SIGHUP)
-		if err != nil{
+		if err != nil {
 			log.Slogger.Errorf("Sent signal Err:[%s]", err.Error())
 		}
 	case "SIGTERM":
 		err = p.Signal(syscall.SIGTERM)
-		if err != nil{
+		if err != nil {
 			log.Slogger.Errorf("Sent signal Err:[%s]", err.Error())
 		}
 	case "SIGINT":
 		err = p.Signal(syscall.SIGINT)
-		if err != nil{
+		if err != nil {
 			log.Slogger.Errorf("Sent signal Err:[%s]", err.Error())
 		}
 	}

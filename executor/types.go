@@ -1,6 +1,6 @@
 package executor
 
-import "agent/common"
+import "github.com/auto-cdp/agent/common"
 
 type Drive interface {
 	Exec(out chan<- Result)

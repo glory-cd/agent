@@ -1,10 +1,10 @@
 package common
 
 import (
+	"github.com/auto-cdp/utils/etcd"
+	"github.com/auto-cdp/utils/log"
+	"github.com/auto-cdp/utils/redis"
 	"time"
-	"utils/etcd"
-	"utils/log"
-	"utils/redis"
 )
 
 var (

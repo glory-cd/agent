@@ -7,8 +7,9 @@
 package executor
 
 import (
-	"agent/common"
 	"bytes"
+	"github.com/auto-cdp/agent/common"
+	"github.com/auto-cdp/utils/log"
 	"github.com/pkg/errors"
 	"os"
 	"os/exec"
@@ -17,7 +18,6 @@ import (
 	"strconv"
 	"syscall"
 	"time"
-	"utils/log"
 )
 
 type Rss struct {
