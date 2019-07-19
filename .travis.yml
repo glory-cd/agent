@@ -23,4 +23,8 @@ notifications:
 script:
   - go test -v
 deploy:
-  echo "deploy"
+  - provider: script
+    skip_cleanup: true
+    script: echo "deploy tag"
+    on:
+      tags: true
