@@ -1,116 +1,68 @@
-# Agent
+Agent
 
 [![Build Status](https://travis-ci.com/auto-cdp/agent.svg?branch=master)](https://travis-ci.com/auto-cdp/agent)
 ![LICENSE](https://img.shields.io/badge/license-GPLv3-blue.svg)
 ![LICENSE](https://img.shields.io/badge/license-Anti%20996-blue.svg?style=flat-square)
 
+# Documentations
 
+- not available now
 
-## 前提条件
-### 1. 代码包内容为`以模块名称命名的目录的压缩包`，可支持`zip` 、`tar.gz`格式，例如：
+# Prerequisite
+
+- Go >= 1.11
+
+# Getting started
+
+## Getting agent
+
 ```shell
-hfp-member.tar.gz
-    hfp-member/
-    ├── bin
-    ├── config
-    ├── data
-    ├── lib
-    └── logs
+git clone https://github.com/auto-cdp/agent.git
+cd agent
+go build
 ```
-### 2. `code pattern`为相对路径，仅支持路径末尾处的`shell pattern`，且确保不要出现互相包含现象
-- 正确示例
+
+## etcd && redis
+
+You must install etcd and redis first.
+
+Then put  a key named `/agentConfig/template`in etcd:
+
 ```json
 {
-    "codepattern":[
-        "lib",
-        "config/static",
-        "config/template",
-        "bin/*.sh",
-        "logs/age?nt*.log"
-    ]
+  "debug": true,
+  "redis": {
+    "host": "your-redis-address:your-redis-port",
+    "maxidele": 3,
+    "maxactive": 0,
+    "timeout": 300
+  },
+  "rest": {
+    "addr": "127.0.0.1:9527"
+  },
+  "log": {
+    "loglevel": "debug",
+    "filename": "/var/log/agent.log",
+    "maxsize": 128,
+    "maxbackups": 30,
+    "maxage": 7,
+    "compress": true
+  }
 }
 ```
 
-- 错误示例
-```json
-{
-    "codepattern":[
-        "lib",
-        "config/static",
-        "config/static/index.js"
-    ]
-}
-```
-### 3. 支持新增文件夹和文件，前提是部署前更新service的code pattern
-### 4. service的启动、关闭、重启要求service目录下有bin目录，且执行脚本位于其中
-### 5. check功能依赖pid文件
-## 数据通信格式
+## Running agent
 
-1. 后台发送的任务json格式：
-
-*通道名称：*`cmd.agentid`
-
-```json
-{
-      "taskid": 123,
-      "executionid": 1,
-      "serviceid": "",
-      "serviceop": 0,
-      "servicename": "",
-      "serviceosuser": "",
-      "servicemodulename":"",
-      "servicedir": "",
-      "serviceremotecode": "",
-      "servicecodepattern": ["lib","config/static"],
-      "servicecustompattern": ["lib/custom.jar","config/template"],
-      "servicepidfile": "",
-      "servicestartcmd": "",
-      "servicestopcmd": ""
-      
-    }
-
-```
-`serviceop：`
-
-- *0* deploy
-- *1* upgrade
-- *2* start
-- *3* stop
-- *4* restart
-- *5* check
-
-2. 优雅指令格式：
-
-*通道名称：*`grace.agentid`
-
-```json
-   {
-       "taskid":"123456",
-       "agentid":"7422abbe-ada0-46f4-9b60-65c5c2e27a2d",
-       "gracecmd": "SIGHUP"
-   }
+```shell
+/your/agent/path/agent --etcd 192.168.1.151:2379,192.168.1.152:2379(etcd cluster endpoint)
 ```
 
-`gracecmd`包括:***SIGHUP*** 、***SIGTERM*** 、***SIGINT***
+## Accept the service registration
 
-3. 所有操作返回格式
+`Some scripts need to be called when your service starts,who push the metadata of the service to agent, the agent register it in etcd.`
 
-*通道名称：*`result.taskid`
+- env.sh
 
-```json
-{
-      "taskid": 123,
-      "executionid": 1,
-      "rcode": 0,
-      "rmsg": "",
-      "rsteps": [{"stepnum": 1,"stepmane": "check","stepstate": 0,"stepmsg": "","steptime": ""},
-                      {"stepnum": 2,"stepmane": "backup","stepstate": 0,"stepmsg": "","steptime": ""}]  
-    }
-
-```
-
-## shell脚本增加内容
-1. env.sh
 ```shell
 #!/bin/bash
 
@@ -148,7 +100,8 @@ curl -i \
 -X POST --data "$(generate_post_data)" "http://127.0.0.1:9527/register" >> $HFP_SERVER_LOG/register.log
 ```
 
-2. 新增meta.sh
+- meta.sh
+
 ```shell
 generate_post_data()
 {
@@ -166,3 +119,61 @@ generate_post_data()
 EOF
 }
 ```
+
+
+
+# Limits
+
+- code package format
+
+**Compressed package named with module name, `zip`, `tar.gz` formats are supported**
+
+Suppose you have a test module,the compressed package must like this:
+
+```shell
+test.tar.gz
+    test/
+    ├── bin
+    ├── config
+    ├── data
+    ├── lib
+    └── logs
+```
+
+- the `servicecodepattern`json column of communication protocol is relative path, and only the end of the path is supported(*shell pattern*), be careful not to include each other.
+
+**The correct sample:**
+
+```json
+{
+    "servicecodepattern":[
+        "lib",
+        "config/static",
+        "config/template",
+        "bin/*.sh",
+        "logs/age?nt*.log"
+    ]
+}
+```
+
+**The wrong sample:**
+
+```json
+{
+    "servicecodepattern":[
+        "lib",
+        "config/static",
+        "config/static/index.js"
+    ]
+}
+```
+
+- Support for adding folders and files, the `servicecodepattern` field of service in the database must be updated before deployment
+
+- RSS operations depend on the bin directory of deployed service, and the corresponding scripts are there
+
+- The check operation relies on pid files
+
+# License
+
+Agent is under the GPL 3.0 license. See the [LICENSE](LICENSE) file for details.
