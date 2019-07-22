@@ -1,8 +1,10 @@
-Agent
+# Agent
 
 [![Build Status](https://travis-ci.com/auto-cdp/agent.svg?branch=master)](https://travis-ci.com/auto-cdp/agent)
 ![LICENSE](https://img.shields.io/badge/license-GPLv3-blue.svg)
 ![LICENSE](https://img.shields.io/badge/license-Anti%20996-blue.svg?style=flat-square)
+
+agent is a part of cdp(a continuous deployment tool), which runs on the machine, manages some services , receives instructions from the server and do some operations with the services, for example: deploy 、update、start、stop、check and so on.
 
 # Documentations
 
