@@ -22,4 +22,7 @@ require (
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 )
 
-replace github.com/auto-cdp/agent => ./
+replace (
+	github.com/auto-cdp/agent => ./
+	golang.org/x/sys => github.com/golang/sys v0.0.0-20190712062909-fae7ac547cb7
+)

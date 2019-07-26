@@ -3,9 +3,9 @@ package redis
 import (
 	"context"
 	"fmt"
+	"github.com/auto-cdp/utils/log"
 	"github.com/garyburd/redigo/redis"
 	"time"
-	"utils/log"
 )
 
 type DataFunc func(string)
