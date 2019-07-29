@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"github.com/auto-cdp/agent/common"
 	"github.com/auto-cdp/utils/afis"
-	"github.com/auto-cdp/utils/log"
 )
 
 func NewServiceFromJson(sjson string) (Service, error) {
@@ -18,7 +17,7 @@ func NewServiceFromJson(sjson string) (Service, error) {
 	if err != nil {
 		return s, err
 	}
-	log.Slogger.Debugw("generate service id.", "agentid", common.AgentID, "dir", s.Dir)
+	//log.Slogger.Debugw("generate service id.", "agentid", common.AgentID, "dir", s.Dir)
 	s.ServiceID = afis.GetMd5String(common.AgentID + s.Dir)
 	return s, nil
 }

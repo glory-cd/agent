@@ -29,7 +29,7 @@ type Deploy struct {
 
 //部署执行
 func (d *Deploy) Exec(out chan<- Result) {
-	log.Slogger.Infof("开始部署服务：%s,%s", d.ServiceID, d.Name)
+	log.Slogger.Infof("开始部署服务：%s,%s", d.ServiceID, d.Dir)
 
 	//使用defer + 闭包来处理错误返回以及清理临时代码存放目录
 	var err error

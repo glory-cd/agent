@@ -20,7 +20,6 @@ type Task struct {
 
 type Service struct {
 	ServiceID   string   `json:"serviceid"`
-	Name        string   `json:"servicename"`
 	OsUser      string   `json:"serviceosuser"`
 	Dir         string   `json:"servicedir"`
 	ModuleName  string   `json:"servicemodulename"`

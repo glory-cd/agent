@@ -37,7 +37,7 @@ func (c *Check) constructRS(rcode common.ExecuteReturnCode, errstr string) {
 }
 
 func (c *Check) Exec(out chan<- Result) {
-	log.Slogger.Infof("开始[CHECK]服务：%s,%s", c.ServiceID, c.Name)
+	log.Slogger.Infof("开始[CHECK]服务：%s,%s", c.ServiceID, c.Dir)
 	var err error
 	defer func() {
 		c.rs.ReturnCode = common.ReturnCode_FAILED

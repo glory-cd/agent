@@ -42,6 +42,12 @@ Then put  a key named `/agentConfig/template`in etcd:
   "rest": {
     "addr": "127.0.0.1:9527"
   },
+    "upload":{
+          "addr":"192.168.1.75:32749",
+          "type":"http",
+          "username":"admin",
+          "password":"YWZpczIwMTk="
+  },
   "log": {
     "loglevel": "debug",
     "filename": "/var/log/agent.log",
@@ -72,9 +78,8 @@ export JAVA_HOME=/usr/java/jdk1.8.0_162
 
 export MAIN_SERVER_OBJECT=com.afis.oper.AlarmWechat
 export MAIN_SERVRt_OPTS=" -d64 -server -Xms1024M -Xmx1536M"
-export HFP_SERVER_NAME='AlarmWechat'
 export HFP_SERVER_MODULE='AlarmWechat'
-export HFP_SERVER_HOME=$HOME/$HFP_SERVER_NAME
+export HFP_SERVER_HOME=$HOME/$HFP_SERVER_MODULE
 export HFP_SERVER_BIN=$HFP_SERVER_HOME/bin
 export HFP_SERVER_CONFIG=$HFP_SERVER_HOME/config
 export HFP_SERVER_LIB=$HFP_SERVER_HOME/lib
@@ -109,7 +114,6 @@ generate_post_data()
 {
   cat <<EOF
 {
-    "servicename":"$HFP_SERVER_NAME",
     "serviceosuser":"$USER",
     "servicedir":"$HFP_SERVER_HOME",
     "servicecodepattern":[$CODEPATTERN],
@@ -175,6 +179,8 @@ test.tar.gz
 - RSS operations depend on the bin directory of deployed service, and the corresponding scripts are there
 
 - The check operation relies on pid files
+
+- You cannot deploy two same services under the same user
 
 # License
 

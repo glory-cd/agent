@@ -12,6 +12,8 @@ require (
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/google/go-cmp v0.3.0
 	github.com/gorilla/mux v1.7.3
+	github.com/hashicorp/go-cleanhttp v0.5.1
+	github.com/jlaffaye/ftp v0.0.0-20190721194432-7cd8b0bcf3fc
 	github.com/mholt/archiver v3.1.1+incompatible
 	github.com/nwaples/rardecode v1.0.0 // indirect
 	github.com/pkg/errors v0.8.1

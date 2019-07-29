@@ -66,7 +66,7 @@ func (r *Rss) Exec(out chan<- Result) {
 		operateString = "RESTART"
 	}
 
-	log.Slogger.Infof("开始[%s]服务：%s,%s", operateString, r.ServiceID, r.Name)
+	log.Slogger.Infof("开始[%s]服务：%s,%s", operateString, r.ServiceID, r.Dir)
 	var err error
 	defer r.deferHandleFunc(&err, out)
 

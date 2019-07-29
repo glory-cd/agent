@@ -28,10 +28,18 @@ type Rest struct {
 }
 
 type GlobalConfig struct {
-	Debug bool         `json:"debug"`
-	Redis *RedisConfig `json:"redis"`
-	Rest  *Rest        `json:"rest"`
-	Log   *LogConfig   `json:"log"`
+	Debug  bool         `json:"debug"`
+	Redis  *RedisConfig `json:"redis"`
+	Rest   *Rest        `json:"rest"`
+	Upload *Upload      `json:"upload"`
+	Log    *LogConfig   `json:"log"`
+}
+
+type Upload struct {
+	Addr     string `json:"addr"`
+	Type     string `json:"type"`
+	UserName string `json:"username"`
+	PassWord string `json:"password"`
 }
 
 var (
@@ -47,13 +55,13 @@ func Config() *GlobalConfig {
 }
 
 //从etcd中服务配置并初始化
-func InitConfig(){
+func InitConfig() {
 
 	configContent, err := EtcdClient.Get(ConfigKey, false)
 
 	log.Printf("ConfigKey:%+v", configContent)
 
-	if err != nil{
+	if err != nil {
 		log.Fatal("get config faild:", "fail:", err)
 	}
 
@@ -75,10 +83,10 @@ func InitConfig(){
 }
 
 //在etcd中创建新的配置
-func NewConfigInEtcd(content *map[string]string){
+func NewConfigInEtcd(content *map[string]string) {
 	temp, err := EtcdClient.Get(ConfigTemplate, false)
 
-	if err != nil{
+	if err != nil {
 		log.Fatal("get config template faild:", "fail:", err)
 	}
 
@@ -86,7 +94,7 @@ func NewConfigInEtcd(content *map[string]string){
 
 	err = EtcdClient.Put(ConfigKey, temp[ConfigTemplate])
 
-	if err != nil{
+	if err != nil {
 		log.Fatal("Put config faild:", "fail:", err)
 	}
 

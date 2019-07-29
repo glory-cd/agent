@@ -29,7 +29,7 @@ type Upgrade struct {
 }
 
 func (u *Upgrade) Exec(out chan<- Result) {
-	log.Slogger.Infof("开始升级服务：%s,%s", u.ServiceID, u.Name)
+	log.Slogger.Infof("开始升级服务：%s,%s", u.ServiceID, u.Dir)
 
 	var err error
 	defer u.deferHandleFunc(&err, out)
@@ -222,7 +222,8 @@ func (u *Upgrade) classifyPattern() (patterndirs, patternfiles, patterns []map[s
 	var pfiles []map[string]string
 	var ppatterns []map[string]string
 	var executePattern []string
-	if u.CustomPattern != nil {
+	log.Slogger.Debugf("custom:%+v, %d", u.CustomPattern, len(u.CustomPattern))
+	if u.CustomPattern != nil && len(u.CustomPattern) != 0 {
 		executePattern = u.CustomPattern
 	} else {
 		executePattern = u.CodePattern
@@ -399,20 +400,52 @@ func (u *Upgrade) dealPatterns(ppatterns []map[string]string) error {
 
 //备份
 func (u *Upgrade) backupService() error {
+	// 压缩文件
 	src := u.Dir
 	filename := filepath.Base(src) + time.Now().Format("20060102150405.000") + ".zip"
-	dst := filepath.Join(filepath.Dir(src), "Backup", filename)
+	dst := filepath.Join(filepath.Dir(src), "/tmp/backup", filename)
 	err := archiver.Archive([]string{src}, dst)
 	if err != nil {
-		return errors.Wrap(err, "upgrade.backupService")
+		return errors.Wrap(err, "upgrade.backupService.archive")
 	}
+	//上传到文件服务器
+	fileServer := common.Config().Upload
+	upath := filepath.Join(common.AgentID, u.ServiceID)
+	err = Upload(
+		dst,
+		fileServer.Addr,
+		fileServer.Type,
+		fileServer.UserName,
+		fileServer.PassWord,
+		upath)
+
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	remoteFilePath := filepath.Join(upath, filename)
+
+	versionFile := filepath.Join(src, ".version")
+
+	err = ioutil.WriteFile(versionFile, []byte(remoteFilePath), 0644)
+
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	err = afis.ChownFile(versionFile, u.OsUser)
+
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
 	u.backfile = dst
 	return nil
 }
 
 //回滚
 func (u *Upgrade) rollBack() error {
-	//如果要删除的文件属主与服务所在用户不同则直接返回×depErrors
+	//如果要删除的文件属主与服务所在用户不同则直接返回*depErrors
 	if !afis.CheckFileOwner(u.Dir, u.OsUser) {
 		return errors.WithStack(
 			NewFileOwnerError(u.Dir,
@@ -430,7 +463,7 @@ func (u *Upgrade) rollBack() error {
 	}
 	err = afis.ChownDirR(u.Dir, u.OsUser)
 	if err != nil {
-		return errors.Wrap(err, "upgrade.rollBack.afis.ChownDirR")
+		return err
 	}
 	return nil
 }
