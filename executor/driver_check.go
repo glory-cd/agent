@@ -20,8 +20,7 @@ import (
 )
 
 type Check struct {
-	*Task
-	*Service
+	driver
 	rs Result
 }
 
@@ -40,11 +39,13 @@ func (c *Check) Exec(out chan<- Result) {
 	log.Slogger.Infof("开始[CHECK]服务：%s,%s", c.ServiceID, c.Dir)
 	var err error
 	defer func() {
-		c.rs.ReturnCode = common.ReturnCode_FAILED
-		c.rs.ReturnMsg = err.Error()
-		log.Slogger.Debugf("Result:%+v", c.rs)
+
 		//断言err的接口类型为CoulsonError
 		if err != nil {
+			c.rs.ReturnCode = common.ReturnCode_FAILED
+			c.rs.ReturnMsg = err.Error()
+			log.Slogger.Debugf("Result:%+v", c.rs)
+
 			if ce, ok := errors.Cause(err).(CoulsonError); ok {
 				log.Slogger.Errorf("encounter an error:%+v, the kv is: %s", err, ce.Kv())
 			} else {

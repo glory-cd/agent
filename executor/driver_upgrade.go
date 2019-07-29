@@ -21,8 +21,7 @@ import (
 )
 
 type Upgrade struct {
-	*Task
-	*Service
+	driver
 	rs       Result
 	tmpdir   string
 	backfile string
@@ -35,7 +34,7 @@ func (u *Upgrade) Exec(out chan<- Result) {
 	defer u.deferHandleFunc(&err, out)
 
 	//执行备份
-	err = u.backupService()
+	err = u.backup()
 	if err != nil {
 		u.constructRS(upgradeStepCodeBackup, common.ReturnCode_FAILED, err.Error())
 		return
@@ -399,33 +398,23 @@ func (u *Upgrade) dealPatterns(ppatterns []map[string]string) error {
 }
 
 //备份
-func (u *Upgrade) backupService() error {
-	// 压缩文件
-	src := u.Dir
-	filename := filepath.Base(src) + time.Now().Format("20060102150405.000") + ".zip"
-	dst := filepath.Join(filepath.Dir(src), "/tmp/backup", filename)
-	err := archiver.Archive([]string{src}, dst)
-	if err != nil {
-		return errors.Wrap(err, "upgrade.backupService.archive")
-	}
-	//上传到文件服务器
-	fileServer := common.Config().Upload
-	upath := filepath.Join(common.AgentID, u.ServiceID)
-	err = Upload(
-		dst,
-		fileServer.Addr,
-		fileServer.Type,
-		fileServer.UserName,
-		fileServer.PassWord,
-		upath)
+func (u *Upgrade) backup() error {
 
-	if err != nil {
-		return errors.WithStack(err)
+	filename := filepath.Base(u.Dir) + time.Now().Format("20060102150405.000") + ".zip"
+
+	dst := filepath.Join("/tmp/backup", filename)
+
+	upath := filepath.Join(common.AgentID, u.ServiceID)
+
+	err := u.backupService(filename, dst, upath)
+
+	if err != nil{
+		return err
 	}
 
 	remoteFilePath := filepath.Join(upath, filename)
 
-	versionFile := filepath.Join(src, ".version")
+	versionFile := filepath.Join(u.Dir, ".version")
 
 	err = ioutil.WriteFile(versionFile, []byte(remoteFilePath), 0644)
 

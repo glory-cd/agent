@@ -21,8 +21,7 @@ import (
 )
 
 type Rss struct {
-	*Task
-	*Service
+	driver
 	rs Result
 }
 

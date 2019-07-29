@@ -20,8 +20,7 @@ import (
 )
 
 type Deploy struct {
-	*Task
-	*Service
+	driver
 	rs      Result
 	isuser  bool
 	tempdir string

@@ -7,13 +7,15 @@ func (t *Executor) Execute() (resultJson string) {
 	result := NewResultPointer(t.Identiy)
 	switch t.OP {
 	case common.Operate_DEP:
-		dr = &Deploy{Task: t.Task, Service: t.Service, rs: *result}
+		dr = &Deploy{driver: driver{Task: t.Task, Service: t.Service}, rs: *result}
 	case common.Operate_UPG:
-		dr = &Upgrade{Task: t.Task, Service: t.Service, rs: *result}
+		dr = &Upgrade{driver: driver{Task: t.Task, Service: t.Service}, rs: *result}
 	case common.Operate_STA, common.Operate_SHU, common.Operate_RES:
-		dr = &Rss{Task: t.Task, Service: t.Service, rs: *result}
+		dr = &Rss{driver: driver{Task: t.Task, Service: t.Service}, rs: *result}
 	case common.Operate_CHE:
-		dr = &Check{Task: t.Task, Service: t.Service, rs: *result}
+		dr = &Check{driver: driver{Task: t.Task, Service: t.Service}, rs: *result}
+	case common.Operate_BAK:
+		dr = &Backup{driver: driver{Task: t.Task, Service: t.Service}, rs: *result}
 	default:
 		return
 	}
