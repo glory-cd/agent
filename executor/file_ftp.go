@@ -1,7 +1,6 @@
 package executor
 
 import (
-	"encoding/base64"
 	"github.com/auto-cdp/utils/log"
 	"github.com/jlaffaye/ftp"
 	"github.com/pkg/errors"
@@ -11,11 +10,11 @@ import (
 	"time"
 )
 
-type FtpUploader struct {
-	uploder
+type FtpFileHandler struct {
+	baseHandler
 }
 
-func (fu *FtpUploader) Upload() error {
+func (fu *FtpFileHandler) Upload() error {
 
 	c, err := ftp.Dial(fu.client.Addr, ftp.DialWithTimeout(5*time.Second))
 
@@ -25,12 +24,11 @@ func (fu *FtpUploader) Upload() error {
 
 	defer c.Quit()
 
-	decode, err := base64.StdEncoding.DecodeString(fu.client.Pass)
-	if err != nil {
-		return errors.WithStack(err)
-	}
+	err = fu.setPass()
 
-	fu.client.Pass = string(decode)
+	if err != nil{
+		return err
+	}
 
 	err = c.Login(fu.client.User, fu.client.Pass)
 	if err != nil {
@@ -67,4 +65,8 @@ func (fu *FtpUploader) Upload() error {
 	}
 
 	return nil
+}
+
+func (fu *FtpFileHandler) Get() (string, error){
+	return "", nil
 }

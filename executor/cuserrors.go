@@ -30,6 +30,16 @@ var upgradeStepName = map[int]string{
 	upgradeStepCodeUpgrade: "upgrade",
 }
 
+const (
+	rollBackStepCodeGetCode int = iota + 1
+	rollBackStepCodeRoll
+)
+
+var rollBackStepName = map[int]string{
+	rollBackStepCodeGetCode: "getcode",
+	rollBackStepCodeRoll: "rollback",
+}
+
 type CoulsonError interface {
 	error
 	Kv() string

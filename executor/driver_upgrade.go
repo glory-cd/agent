@@ -414,7 +414,7 @@ func (u *Upgrade) backup() error {
 
 	remoteFilePath := filepath.Join(upath, filename)
 
-	versionFile := filepath.Join(u.Dir, ".version")
+	versionFile := filepath.Join(u.Dir, common.PathFile)
 
 	err = ioutil.WriteFile(versionFile, []byte(remoteFilePath), 0644)
 

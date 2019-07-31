@@ -28,14 +28,14 @@ type Rest struct {
 }
 
 type GlobalConfig struct {
-	Debug  bool         `json:"debug"`
-	Redis  *RedisConfig `json:"redis"`
-	Rest   *Rest        `json:"rest"`
-	Upload *Upload      `json:"upload"`
-	Log    *LogConfig   `json:"log"`
+	Debug      bool         `json:"debug"`
+	Redis      *RedisConfig `json:"redis"`
+	Rest       *Rest        `json:"rest"`
+	FileServer *FileServer  `json:"fileserver"`
+	Log        *LogConfig   `json:"log"`
 }
 
-type Upload struct {
+type FileServer struct {
 	Addr     string `json:"addr"`
 	Type     string `json:"type"`
 	UserName string `json:"username"`

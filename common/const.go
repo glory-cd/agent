@@ -29,4 +29,5 @@ const (
 	ReturnOKMsg string = "OK"
 	ConfigTemplate = "/agentConfig/template"
 	UUIDFile = "/etc/agent/uuid"
+	PathFile = ".version"
 )

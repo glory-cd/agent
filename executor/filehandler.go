@@ -1,7 +1,9 @@
 package executor
 
-type Uploader interface {
+type FileHandler interface {
 	Upload() error
+
+	Get() (string, error)
 
 	// SetClient allows a getter to know it's client
 	// in order to access client's Get functions or
@@ -18,4 +20,15 @@ func Upload(src, addr, utype, user, pass, path string) error {
 		Pass:         pass,
 		RelativePath: path,
 	}).Upload()
+}
+
+
+func Get(addr, utype, user, pass, path string) (string, error) {
+	return (&Client{
+		Addr:         addr,
+		Type:         utype,
+		User:         user,
+		Pass:         pass,
+		RelativePath: path,
+	}).Get()
 }

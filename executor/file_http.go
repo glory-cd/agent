@@ -2,8 +2,8 @@ package executor
 
 import (
 	"bytes"
-	"encoding/base64"
 	"fmt"
+	"github.com/auto-cdp/utils/afis"
 	"github.com/auto-cdp/utils/log"
 	"github.com/hashicorp/go-cleanhttp"
 	"github.com/pkg/errors"
@@ -17,24 +17,23 @@ import (
 	"time"
 )
 
-type HttpUploader struct {
-	uploder
+type HttpFileHandler struct {
+	baseHandler
 
 	// Client is the http.Client to use for Get requests.
 	// This defaults to a cleanhttp.DefaultClient if left unset.
 	Client *http.Client
 }
 
-func (hu *HttpUploader) Upload() error {
+func (hu *HttpFileHandler) Upload() error {
 
 	begin := time.Now()
 
-	decode, err := base64.StdEncoding.DecodeString(hu.client.Pass)
-	if err != nil {
-		return errors.WithStack(err)
-	}
+	err := hu.setPass()
 
-	hu.client.Pass = string(decode)
+	if err != nil{
+		return err
+	}
 
 	src := hu.client.Src
 	file, err := os.Open(src)
@@ -95,7 +94,35 @@ func (hu *HttpUploader) Upload() error {
 	return nil
 }
 
-func (hu *HttpUploader) newPostUrl() string {
+func (hu *HttpFileHandler) Get() (string, error){
+	begin := time.Now()
+
+	err := hu.setPass()
+
+	if err != nil{
+		return "", err
+	}
+	//getcode
+	//创建临时存放代码目录
+	tmpdir, err := ioutil.TempDir("", "dep_")
+	if err != nil {
+		return "", errors.WithStack(NewPathError("/tmp/dep_", err.Error()))
+	}
+
+	//从url获取代码
+	err = afis.DownloadCode(tmpdir, hu.newPostUrl())
+	if err != nil {
+		return "", errors.WithStack(NewGetCodeError(hu.newPostUrl(), err.Error()))
+	}
+
+	elapsed := time.Since(begin)
+
+	log.Slogger.Infof("Upload elapsed: ", elapsed)
+
+	return tmpdir, nil
+}
+
+func (hu *HttpFileHandler) newPostUrl() string {
 	requestURL := new(url.URL)
 
 	requestURL.Scheme = "http"

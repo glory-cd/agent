@@ -2,6 +2,7 @@ package executor
 
 import (
 	"fmt"
+	"github.com/pkg/errors"
 )
 
 type Client struct {
@@ -12,7 +13,7 @@ type Client struct {
 
 	Type string
 
-	Uploader Uploader
+	Handler FileHandler
 
 	User string
 
@@ -21,24 +22,52 @@ type Client struct {
 	RelativePath string
 }
 
-func (c *Client) Upload() error {
-
+func (c *Client) init() error{
 	switch c.Type {
 	case "http":
-		c.Uploader = new(HttpUploader)
+		c.Handler = new(HttpFileHandler)
 	case "ftp":
-		c.Uploader = new(FtpUploader)
+		c.Handler = new(FtpFileHandler)
 	default:
 		return fmt.Errorf("unsupported uploader: %s", c.Type)
 	}
 
-	c.Uploader.SetClient(c)
+	c.Handler.SetClient(c)
 
-	err := c.Uploader.Upload()
+	return nil
+}
+
+func (c *Client) Upload() error {
+
+	err := c.init()
+
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	err = c.Handler.Upload()
 
 	if err != nil {
 		return err
 	}
 
 	return nil
+}
+
+
+func (c *Client) Get() (string, error) {
+
+	err := c.init()
+
+	if err != nil {
+		return "", errors.WithStack(err)
+	}
+
+	dir, err := c.Handler.Get()
+
+	if err != nil {
+		return "", err
+	}
+
+	return dir, nil
 }

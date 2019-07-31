@@ -4,13 +4,14 @@ import (
 	"github.com/auto-cdp/agent/common"
 	"github.com/mholt/archiver"
 	"github.com/pkg/errors"
+	"io/ioutil"
+	"path/filepath"
 )
 
 type driver struct {
 	*Task
 	*Service
 }
-
 
 func (d *driver) backupService(filename, tmpdst, uploadpath string) error {
 	// 压缩文件
@@ -21,7 +22,7 @@ func (d *driver) backupService(filename, tmpdst, uploadpath string) error {
 		return errors.WithStack(err)
 	}
 	//上传到文件服务器
-	fileServer := common.Config().Upload
+	fileServer := common.Config().FileServer
 	err = Upload(
 		tmpdst,
 		fileServer.Addr,
@@ -34,4 +35,15 @@ func (d *driver) backupService(filename, tmpdst, uploadpath string) error {
 		return errors.WithStack(err)
 	}
 	return nil
+}
+
+//读取PathFile文件，获取FileServer中的备份路径
+func (d *driver) readServiceVerion() (string, error) {
+	versionFile := filepath.Join(d.Dir, common.PathFile)
+	path, err := ioutil.ReadFile(versionFile)
+	if err != nil {
+		return "", errors.WithStack(err)
+	}
+
+	return string(path), nil
 }
