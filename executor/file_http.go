@@ -117,7 +117,7 @@ func (hu *HttpFileHandler) Get() (string, error){
 
 	elapsed := time.Since(begin)
 
-	log.Slogger.Infof("Upload elapsed: ", elapsed)
+	log.Slogger.Infof("download elapsed: ", elapsed)
 
 	return tmpdir, nil
 }

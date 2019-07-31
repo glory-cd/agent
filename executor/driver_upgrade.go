@@ -400,7 +400,7 @@ func (u *Upgrade) dealPatterns(ppatterns []map[string]string) error {
 //备份
 func (u *Upgrade) backup() error {
 
-	filename := filepath.Base(u.Dir) + time.Now().Format("20060102150405.000") + ".zip"
+	filename := filepath.Base(u.Dir) + time.Now().Format("20060102150405.00000") + ".zip"
 
 	dst := filepath.Join("/tmp/backup", filename)
 

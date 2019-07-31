@@ -16,6 +16,8 @@ func (t *Executor) Execute() (resultJson string) {
 		dr = &Check{driver: driver{Task: t.Task, Service: t.Service}, rs: *result}
 	case common.Operate_BAK:
 		dr = &Backup{driver: driver{Task: t.Task, Service: t.Service}, rs: *result}
+	case common.Operate_ROL:
+		dr = &Roll{driver: driver{Task: t.Task, Service: t.Service}, rs: *result}
 	default:
 		return
 	}
