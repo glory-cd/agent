@@ -7,8 +7,8 @@ package executor
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/auto-cdp/agent/common"
-	"github.com/auto-cdp/utils/afis"
+	"github.com/glory-cd/agent/common"
+	"github.com/glory-cd/utils/afis"
 )
 
 func NewServiceFromJson(sjson string) (Service, error) {

@@ -3,9 +3,9 @@ package core
 import (
 	"bytes"
 	"fmt"
-	"github.com/auto-cdp/agent/common"
-	"github.com/auto-cdp/agent/executor"
-	"github.com/auto-cdp/utils/log"
+	"github.com/glory-cd/agent/common"
+	"github.com/glory-cd/agent/executor"
+	"github.com/glory-cd/utils/log"
 	"github.com/google/go-cmp/cmp"
 	"github.com/gorilla/mux"
 	"io/ioutil"

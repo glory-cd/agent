@@ -1,9 +1,9 @@
 package core
 
 import (
-	"github.com/auto-cdp/agent/common"
-	"github.com/auto-cdp/utils/etcd"
-	"github.com/auto-cdp/utils/log"
+	"github.com/glory-cd/agent/common"
+	"github.com/glory-cd/utils/etcd"
+	"github.com/glory-cd/utils/log"
 )
 
 func Run(){

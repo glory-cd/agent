@@ -5,8 +5,8 @@
 package core
 
 import (
-	"github.com/auto-cdp/agent/executor"
-	"github.com/auto-cdp/utils/afis"
+	"github.com/glory-cd/agent/executor"
+	"github.com/glory-cd/utils/afis"
 	"github.com/pkg/errors"
 	"log"
 	"strings"

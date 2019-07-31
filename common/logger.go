@@ -2,7 +2,7 @@ package common
 
 
 import (
-	"github.com/auto-cdp/utils/log"
+	"github.com/glory-cd/utils/log"
 )
 
 func InitLog() {

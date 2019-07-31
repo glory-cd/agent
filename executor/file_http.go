@@ -3,8 +3,8 @@ package executor
 import (
 	"bytes"
 	"fmt"
-	"github.com/auto-cdp/utils/afis"
-	"github.com/auto-cdp/utils/log"
+	"github.com/glory-cd/utils/afis"
+	"github.com/glory-cd/utils/log"
 	"github.com/hashicorp/go-cleanhttp"
 	"github.com/pkg/errors"
 	"io"

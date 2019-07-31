@@ -6,7 +6,7 @@ package executor
 
 import (
 	"encoding/json"
-	"github.com/auto-cdp/agent/common"
+	"github.com/glory-cd/agent/common"
 )
 
 type Result struct {

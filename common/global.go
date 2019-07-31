@@ -1,9 +1,9 @@
 package common
 
 import (
-	"github.com/auto-cdp/utils/etcd"
-	"github.com/auto-cdp/utils/log"
-	"github.com/auto-cdp/utils/redis"
+	"github.com/glory-cd/utils/etcd"
+	"github.com/glory-cd/utils/log"
+	"github.com/glory-cd/utils/redis"
 	"time"
 )
 

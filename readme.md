@@ -19,7 +19,7 @@ agent is a part of cdp(a continuous deployment tool), which runs on the machine,
 ## Getting agent
 
 ```shell
-git clone https://github.com/auto-cdp/agent.git
+git clone https://github.com/glory-cd/agent.git
 cd agent
 go build
 ```

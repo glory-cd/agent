@@ -13,11 +13,11 @@ github.com/alecthomas/template
 github.com/alecthomas/template/parse
 # github.com/alecthomas/units v0.0.0-20190717042225-c3de453c63f4
 github.com/alecthomas/units
-# github.com/auto-cdp/utils v0.0.0-20190719052356-c6d45e7bc0b5
-github.com/auto-cdp/utils/etcd
-github.com/auto-cdp/utils/log
-github.com/auto-cdp/utils/redis
-github.com/auto-cdp/utils/afis
+# github.com/glory-cd/utils v0.0.0-20190719052356-c6d45e7bc0b5
+github.com/glory-cd/utils/etcd
+github.com/glory-cd/utils/log
+github.com/glory-cd/utils/redis
+github.com/glory-cd/utils/afis
 # github.com/aws/aws-sdk-go v1.15.78
 github.com/aws/aws-sdk-go/aws
 github.com/aws/aws-sdk-go/aws/credentials

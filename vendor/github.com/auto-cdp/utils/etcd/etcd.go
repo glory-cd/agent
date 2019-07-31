@@ -2,7 +2,7 @@ package etcd
 
 import (
 	"context"
-	"github.com/auto-cdp/utils/log"
+	"github.com/glory-cd/utils/log"
 	"github.com/coreos/etcd/clientv3"
 	"github.com/coreos/etcd/mvcc/mvccpb"
 	"sync"

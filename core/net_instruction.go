@@ -7,9 +7,9 @@ package core
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/auto-cdp/agent/common"
-	"github.com/auto-cdp/agent/executor"
-	"github.com/auto-cdp/utils/log"
+	"github.com/glory-cd/agent/common"
+	"github.com/glory-cd/agent/executor"
+	"github.com/glory-cd/utils/log"
 	"strconv"
 	"strings"
 )

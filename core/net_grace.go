@@ -2,7 +2,7 @@ package core
 
 import (
 	"encoding/json"
-	"github.com/auto-cdp/utils/log"
+	"github.com/glory-cd/utils/log"
 	"os"
 	"os/signal"
 	"syscall"

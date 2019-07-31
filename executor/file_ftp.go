@@ -1,7 +1,7 @@
 package executor
 
 import (
-	"github.com/auto-cdp/utils/log"
+	"github.com/glory-cd/utils/log"
 	"github.com/jlaffaye/ftp"
 	"github.com/pkg/errors"
 	"os"

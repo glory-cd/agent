@@ -7,8 +7,8 @@
 package executor
 
 import (
-	"github.com/auto-cdp/agent/common"
-	"github.com/auto-cdp/utils/log"
+	"github.com/glory-cd/agent/common"
+	"github.com/glory-cd/utils/log"
 	"github.com/pkg/errors"
 	"path/filepath"
 	"time"

@@ -30,8 +30,6 @@ github.com/alecthomas/units v0.0.0-20190717042225-c3de453c63f4 h1:Hs82Z41s6SdL1C
 github.com/alecthomas/units v0.0.0-20190717042225-c3de453c63f4/go.mod h1:ybxpYRFXyAe+OPACYpWeL0wqObRcbAqCMya13uyzqw0=
 github.com/anmitsu/go-shlex v0.0.0-20161002113705-648efa622239/go.mod h1:2FmKhYUyUczH0OGQWaF5ceTx0UBShxjsH6f8oGKYe2c=
 github.com/apache/thrift v0.12.0/go.mod h1:cp2SuWMxlEZw2r+iP2GNCdIi4C1qmUzdZFSVb+bacwQ=
-github.com/auto-cdp/utils v0.0.0-20190719052356-c6d45e7bc0b5 h1:pf73szf1rfujGVYGW0OvgCoebryoCKnq+Giv8RSCYUg=
-github.com/auto-cdp/utils v0.0.0-20190719052356-c6d45e7bc0b5/go.mod h1:ohI9pRvzi6T6K5Xu7lhaF0QOzIsjp32GHxjr/2VjXtg=
 github.com/aws/aws-sdk-go v1.15.78 h1:LaXy6lWR0YK7LKyuU0QWy2ws/LWTPfYV/UgfiBu4tvY=
 github.com/aws/aws-sdk-go v1.15.78/go.mod h1:E3/ieXAlvM0XWO57iftYVDLLvQ824smPP3ATZkfNZeM=
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973 h1:xJ4a3vCFaGF/jqvzLMYoU8P317H5OQ+Via4RmuPwCS0=
@@ -83,6 +81,10 @@ github.com/garyburd/redigo v1.6.0/go.mod h1:NR3MbYisc3/PwhQ00EMzDiPmrwpPxAn5GI05
 github.com/ghodss/yaml v1.0.0 h1:wQHKEahhL6wmXdzwWG11gIVCkOv05bNOh+Rxn0yngAk=
 github.com/ghodss/yaml v1.0.0/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
 github.com/gliderlabs/ssh v0.1.1/go.mod h1:U7qILu1NlMHj9FlMhZLlkCdDnU1DBEAqr0aevW3Awn0=
+github.com/glory-cd/utils v0.0.0-20190719052356-c6d45e7bc0b5 h1:pf73szf1rfujGVYGW0OvgCoebryoCKnq+Giv8RSCYUg=
+github.com/glory-cd/utils v0.0.0-20190719052356-c6d45e7bc0b5/go.mod h1:ohI9pRvzi6T6K5Xu7lhaF0QOzIsjp32GHxjr/2VjXtg=
+github.com/glory-cd/utils v0.0.0-20190731013124-f69d4a28bc82 h1:xxHVtczhg2oGNJTzPi29wYrjUU11F2xy005lAPmhhxk=
+github.com/glory-cd/utils v0.0.0-20190731013124-f69d4a28bc82/go.mod h1:yyQytjdh3qqKkXZDNXxvYwGGEMuBcHKzKuvdFJeZQPw=
 github.com/go-kit/kit v0.8.0/go.mod h1:xBxKIO96dXMWWy0MnWVtmwkA9/13aqxPnvrjFYMA2as=
 github.com/go-logfmt/logfmt v0.3.0/go.mod h1:Qt1PoO58o5twSAckw1HlFXLmHsOX5/0LbT9GBnD5lWE=
 github.com/go-ole/go-ole v1.2.4 h1:nNBDSCOigTSiarFpYE9J/KtEA1IOW4CNeqT9TQDqCxI=

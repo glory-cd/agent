@@ -1,7 +1,7 @@
 package executor
 
 import (
-	"github.com/auto-cdp/agent/common"
+	"github.com/glory-cd/agent/common"
 	"github.com/mholt/archiver"
 	"github.com/pkg/errors"
 	"io/ioutil"
