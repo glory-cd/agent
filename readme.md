@@ -42,7 +42,7 @@ Then put  a key named `/agentConfig/template`in etcd:
   "rest": {
     "addr": "127.0.0.1:9527"
   },
-    "upload":{
+    "fileserver":{
           "addr":"192.168.1.75:32749",
           "type":"http",
           "username":"admin",
