@@ -3,8 +3,8 @@ package redis
 import (
 	"context"
 	"fmt"
-	"github.com/glory-cd/utils/log"
 	"github.com/garyburd/redigo/redis"
+	"github.com/glory-cd/utils/log"
 	"time"
 )
 

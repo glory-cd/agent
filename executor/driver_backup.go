@@ -51,13 +51,13 @@ func (b *Backup) Exec(out chan<- Result) {
 		log.Slogger.Infof("退出goroutine.")
 	}()
 
-	filename := filepath.Base(b.Dir) + time.Now().Format("20060102150405.000") + ".zip"
+	filename := filepath.Base(b.Dir) + time.Now().Format("20060102150405.00000") + ".zip"
 
 	dst := filepath.Join("/tmp/backup", filename)
 
 	upath := filepath.Join(common.AgentID, b.ServiceID)
 
-	err = b.backupService(filename, dst, upath)
+	err = b.backupService(dst, upath)
 
 	if err != nil{
 		b.constructRS(common.ReturnCode_FAILED, err.Error())

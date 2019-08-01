@@ -104,7 +104,7 @@ func (hu *HttpFileHandler) Get() (string, error){
 	}
 	//getcode
 	//创建临时存放代码目录
-	tmpdir, err := ioutil.TempDir("", "dep_")
+	tmpdir, err := ioutil.TempDir("", "rol_")
 	if err != nil {
 		return "", errors.WithStack(NewPathError("/tmp/dep_", err.Error()))
 	}

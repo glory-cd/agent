@@ -2,9 +2,9 @@ package etcd
 
 import (
 	"context"
-	"github.com/glory-cd/utils/log"
 	"github.com/coreos/etcd/clientv3"
 	"github.com/coreos/etcd/mvcc/mvccpb"
+	"github.com/glory-cd/utils/log"
 	"sync"
 	"time"
 	"unsafe"

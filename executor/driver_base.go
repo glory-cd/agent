@@ -2,7 +2,7 @@ package executor
 
 import (
 	"github.com/glory-cd/agent/common"
-	"github.com/mholt/archiver"
+	"github.com/glory-cd/utils/afis"
 	"github.com/pkg/errors"
 	"io/ioutil"
 	"path/filepath"
@@ -13,11 +13,11 @@ type driver struct {
 	*Service
 }
 
-func (d *driver) backupService(filename, tmpdst, uploadpath string) error {
+func (d *driver) backupService(tmpdst, uploadpath string) error {
 	// 压缩文件
 	src := d.Dir
 
-	err := archiver.Archive([]string{src}, tmpdst)
+	err := afis.Zipit(src, tmpdst, "*.log")
 	if err != nil {
 		return errors.WithStack(err)
 	}

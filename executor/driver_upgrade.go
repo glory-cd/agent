@@ -406,7 +406,7 @@ func (u *Upgrade) backup() error {
 
 	upath := filepath.Join(common.AgentID, u.ServiceID)
 
-	err := u.backupService(filename, dst, upath)
+	err := u.backupService(dst, upath)
 
 	if err != nil{
 		return err

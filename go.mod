@@ -7,7 +7,7 @@ require (
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751 // indirect
 	github.com/alecthomas/units v0.0.0-20190717042225-c3de453c63f4 // indirect
 	github.com/dsnet/compress v0.0.1 // indirect
-	github.com/glory-cd/utils v0.0.0-20190731013124-f69d4a28bc82
+	github.com/glory-cd/utils v0.0.0-20190801055949-051c4e69d6e5
 	github.com/go-ole/go-ole v1.2.4 // indirect
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/google/go-cmp v0.3.0
@@ -24,7 +24,4 @@ require (
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 )
 
-replace (
-	github.com/glory-cd/agent => ./
-	golang.org/x/sys => github.com/golang/sys v0.0.0-20190712062909-fae7ac547cb7
-)
+replace github.com/glory-cd/agent => ./
