@@ -56,13 +56,6 @@ github.com/coreos/etcd/auth/authpb
 github.com/coreos/etcd/etcdserver/api/v3rpc/rpctypes
 github.com/coreos/etcd/etcdserver/etcdserverpb
 github.com/coreos/etcd/pkg/types
-# github.com/dsnet/compress v0.0.1
-github.com/dsnet/compress/bzip2
-github.com/dsnet/compress/bzip2/internal/sais
-github.com/dsnet/compress/internal
-github.com/dsnet/compress/internal/errors
-github.com/dsnet/compress/internal/prefix
-github.com/dsnet/compress
 # github.com/garyburd/redigo v1.6.0
 github.com/garyburd/redigo/redis
 github.com/garyburd/redigo/internal
@@ -85,8 +78,6 @@ github.com/golang/protobuf/ptypes/any
 github.com/golang/protobuf/ptypes/duration
 github.com/golang/protobuf/ptypes/timestamp
 github.com/golang/protobuf/protoc-gen-go/descriptor
-# github.com/golang/snappy v0.0.1
-github.com/golang/snappy
 # github.com/google/go-cmp v0.3.0
 github.com/google/go-cmp/cmp
 github.com/google/go-cmp/cmp/internal/diff
@@ -116,17 +107,10 @@ github.com/jinzhu/inflection
 github.com/jlaffaye/ftp
 # github.com/jmespath/go-jmespath v0.0.0-20160202185014-0b12d6b521d8
 github.com/jmespath/go-jmespath
-# github.com/mholt/archiver v3.1.1+incompatible
-github.com/mholt/archiver
 # github.com/mitchellh/go-homedir v1.0.0
 github.com/mitchellh/go-homedir
 # github.com/mitchellh/go-testing-interface v1.0.0
 github.com/mitchellh/go-testing-interface
-# github.com/nwaples/rardecode v1.0.0
-github.com/nwaples/rardecode
-# github.com/pierrec/lz4 v2.0.5+incompatible
-github.com/pierrec/lz4
-github.com/pierrec/lz4/internal/xxh32
 # github.com/pkg/errors v0.8.1
 github.com/pkg/errors
 # github.com/satori/go.uuid v1.2.1-0.20181028125025-b2ce2384e17b
@@ -147,8 +131,6 @@ github.com/ulikunitz/xz/lzma
 github.com/ulikunitz/xz/internal/hash
 # github.com/wantedly/gorm-zap v0.0.0-20171015071652-372d3517a876
 github.com/wantedly/gorm-zap
-# github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8
-github.com/xi2/xz
 # go.opencensus.io v0.20.1
 go.opencensus.io/trace
 go.opencensus.io/plugin/ochttp

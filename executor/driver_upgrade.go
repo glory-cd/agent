@@ -10,7 +10,6 @@ import (
 	"github.com/glory-cd/agent/common"
 	"github.com/glory-cd/utils/afis"
 	"github.com/glory-cd/utils/log"
-	"github.com/mholt/archiver"
 	"github.com/pkg/errors"
 	"io/ioutil"
 	"os"
@@ -446,9 +445,9 @@ func (u *Upgrade) rollBack() error {
 		return errors.Wrap(err, "upgrade.rollBack.RemoveAll")
 	}
 	basedir := filepath.Dir(u.Dir)
-	err = archiver.Unarchive(u.backfile, basedir)
+	err = afis.Unzip(u.backfile, basedir)
 	if err != nil {
-		return errors.Wrap(err, "upgrade.rollBack.archiver.Unarchive")
+		return errors.Wrap(err, "upgrade.rollBack.afis.Unzip")
 	}
 	err = afis.ChownDirR(u.Dir, u.OsUser)
 	if err != nil {
