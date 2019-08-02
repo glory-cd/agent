@@ -180,24 +180,25 @@ func (u *Upgrade) getCode() error {
 }
 
 func (u *Upgrade) upgrade() error {
-	patterndirs, patternfiles, patterns := u.classifyPattern()
+	patterndirs, patternfiles, patterns := u.classifyPattern() //将Pattern分类
 	log.Slogger.Debugw("The paths need to be precessed:", "patterndirs", patterndirs,
 		"patternfiles", patternfiles, "patterns", patterns)
 
+	//目录处理
 	if patterndirs != nil {
 		err := u.dealPatternDirs(patterndirs)
 		if err != nil {
 			return err
 		}
 	}
-
+	//文件处理
 	if patternfiles != nil {
 		err := u.dealPatternFiles(patternfiles)
 		if err != nil {
 			return err
 		}
 	}
-
+	//patterns处理
 	if patterns != nil {
 		err := u.dealPatterns(patterns)
 		if err != nil {
@@ -269,6 +270,7 @@ func (u *Upgrade) dealPatternDirs(pdirs []map[string]string) error {
 				"upgrade.dealPatternDirs.afis.RemoveContents",
 			)
 		}
+		//目录内容copy
 		src := filepath.Join(u.tmpdir, u.ModuleName, pd["codepattern"])
 		err = afis.CopyDir(src, pd["codepath"])
 		if err != nil {
@@ -308,6 +310,7 @@ func (u *Upgrade) dealPatternFiles(pfiles []map[string]string) error {
 				"upgrade.dealPatternFiles.os.Remove",
 			)
 		}
+		//文件copy
 		src := filepath.Join(u.tmpdir, u.ModuleName, pf["codepattern"])
 		err = afis.CopyFile(src, pf["codepath"])
 		if err != nil {
@@ -331,7 +334,7 @@ func (u *Upgrade) dealPatterns(ppatterns []map[string]string) error {
 	var pfiles []map[string]string
 	for _, pp := range ppatterns {
 		basedir := filepath.Dir(pp["codepath"])
-		//以pattern的基目录为起点进行一级目录遍历
+		//以pattern的基目录为起点进行一级目录遍历，将遍历的内容安文件和目录分别进行处理
 		err := afis.WalkOnce(basedir, func(path string, info os.FileInfo, err1 error) error {
 			if err1 != nil {
 				return errors.Wrap(
@@ -398,35 +401,32 @@ func (u *Upgrade) dealPatterns(ppatterns []map[string]string) error {
 
 //备份
 func (u *Upgrade) backup() error {
-
+	//构建目标文件和上传路径
 	filename := filepath.Base(u.Dir) + time.Now().Format("20060102150405.00000") + ".zip"
 
 	dst := filepath.Join("/tmp/backup", filename)
 
 	upath := filepath.Join(common.AgentID, u.ServiceID)
-
+	//备份到目标文件
 	err := u.backupService(dst, upath)
 
 	if err != nil{
 		return err
 	}
-
-	remoteFilePath := filepath.Join(upath, filename)
-
-	versionFile := filepath.Join(u.Dir, common.PathFile)
-
-	err = ioutil.WriteFile(versionFile, []byte(remoteFilePath), 0644)
+	remoteFilePath := filepath.Join(upath, filename) //构建文件服务器上的文件路径
+	versionFile := filepath.Join(u.Dir, common.PathFile)  //构建本地记录文件服务器上备份路径的缓存文件
+	err = ioutil.WriteFile(versionFile, []byte(remoteFilePath), 0644) //将路径写入缓存文件
 
 	if err != nil {
 		return errors.WithStack(err)
 	}
-
+	//更改属主
 	err = afis.ChownFile(versionFile, u.OsUser)
 
 	if err != nil {
 		return errors.WithStack(err)
 	}
-
+	//记录临时的备份文件以备发生错误即时回滚
 	u.backfile = dst
 	return nil
 }
@@ -444,6 +444,7 @@ func (u *Upgrade) rollBack() error {
 	if err != nil {
 		return errors.Wrap(err, "upgrade.rollBack.RemoveAll")
 	}
+	//解压临时备份文件至dir
 	basedir := filepath.Dir(u.Dir)
 	err = afis.Unzip(u.backfile, basedir)
 	if err != nil {

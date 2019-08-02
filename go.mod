@@ -6,7 +6,7 @@ require (
 	github.com/StackExchange/wmi v0.0.0-20190523213315-cbe66965904d // indirect
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751 // indirect
 	github.com/alecthomas/units v0.0.0-20190717042225-c3de453c63f4 // indirect
-	github.com/glory-cd/utils v0.0.0-20190801055949-051c4e69d6e5
+	github.com/glory-cd/utils v0.0.0-20190802023144-6dacc1419993
 	github.com/go-ole/go-ole v1.2.4 // indirect
 	github.com/google/go-cmp v0.3.0
 	github.com/gorilla/mux v1.7.3

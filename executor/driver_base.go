@@ -13,10 +13,10 @@ type driver struct {
 	*Service
 }
 
+//备份dir到临时文件，并上传至文件服务器
 func (d *driver) backupService(tmpdst, uploadpath string) error {
 	// 压缩文件
 	src := d.Dir
-
 	err := afis.Zipit(src, tmpdst, "*.log")
 	if err != nil {
 		return errors.WithStack(err)

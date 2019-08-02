@@ -10,15 +10,17 @@ import (
 
 //信号处理函数
 func gracefulHandle() {
+	//注册信号
 	signals := make(chan os.Signal)
 	signal.Notify(signals, syscall.SIGHUP, syscall.SIGTERM, syscall.SIGINT)
-
+	//监听信号
 	for sig := range signals {
 		switch sig {
 		case syscall.SIGINT, syscall.SIGTERM:
 			log.Slogger.Infof("Recieve signal：%s", sig)
 			os.Exit(0)
 		case syscall.SIGHUP:
+			//收到SIGHUP，则forkexec进行重启
 			execSpec := &syscall.ProcAttr{
 				Env:   os.Environ(),
 				Files: []uintptr{os.Stdin.Fd(), os.Stdout.Fd(), os.Stderr.Fd()},
@@ -49,13 +51,13 @@ func dealReceiveGraceCMD(graceJson string) {
 		log.Slogger.Errorf("ConvertGraceJsonTOMapObject Err:[%s]", err.Error())
 		return
 	}
-
+	//获取当前进程
 	p, err := os.FindProcess(os.Getpid())
 	if err != nil {
 		log.Slogger.Errorf("FindProcess Err:[%s]", err.Error())
 		return
 	}
-
+	//向进程发送信号
 	switch m["gracecmd"] {
 	case "SIGHUP":
 		err = p.Signal(syscall.SIGHUP)

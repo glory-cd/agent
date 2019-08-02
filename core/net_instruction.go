@@ -14,6 +14,7 @@ import (
 	"strings"
 )
 
+//处理接收到的指令
 func dealReceiveInstruction(ins string) {
 	var insExecutor executor.Executor
 	err := json.Unmarshal([]byte(ins), &insExecutor)
@@ -21,6 +22,7 @@ func dealReceiveInstruction(ins string) {
 		log.Slogger.Errorf("ConvertInsJsonTOTaskObject Err:[%s]", err.Error())
 		return
 	}
+	//执行
 	result := insExecutor.Execute()
 
 	publishResult(insExecutor.TaskID, result)

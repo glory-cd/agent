@@ -2,6 +2,7 @@ package executor
 
 import "github.com/glory-cd/agent/common"
 
+//根据不同的指令，调用相应的驱动
 func (t *Executor) Execute() (resultJson string) {
 	var dr Drive
 	result := NewResultPointer(t.Identiy)
@@ -21,13 +22,13 @@ func (t *Executor) Execute() (resultJson string) {
 	default:
 		return
 	}
-
+	//准备结果通道
 	ch := make(chan Result)
-
+	//驱动执行
 	go dr.Exec(ch)
-
+	//等待接受结果
 	re := <-ch
-
+	//转为JSON
 	restring, _ := re.ToJsonString()
 
 	return restring

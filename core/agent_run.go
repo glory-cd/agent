@@ -35,7 +35,7 @@ func startRegister() {
 
 }
 
-//分别订阅部署、更新、静态命令消息
+//分别订阅信号监听和指令处理消息通道
 func subscribeCMDChannel() {
 	go common.RedisConn.SubscribeChannel(CurAgent.InstructionChannel, dealReceiveInstruction)
 	go common.RedisConn.SubscribeChannel(CurAgent.GraceChannel, dealReceiveGraceCMD)

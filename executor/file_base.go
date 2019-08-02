@@ -18,7 +18,7 @@ func (u *baseHandler) setPass() error{
 	if err != nil {
 		return errors.WithStack(err)
 	}
-
+	//set client pass
 	u.client.Pass = string(decode)
 	return nil
 }

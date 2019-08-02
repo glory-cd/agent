@@ -63,8 +63,9 @@ func (r *Roll) Exec(out chan<- Result) {
 
 }
 
+//从文件服务器下载上一个备份副本
 func (r *Roll) getCode() error {
-
+	//获取文件服务器上的备份路径
 	relativePath, err := r.readServiceVerion()
 
 	if err != nil {
@@ -102,6 +103,7 @@ func (r *Roll) rollBack() error {
 				r.OsUser,
 				"file and owner does not match"))
 	}
+	//删除service目录下的内容
 	err := os.RemoveAll(r.Dir)
 	if err != nil {
 		r.constructRS(rollBackStepCodeRoll, common.ReturnCode_FAILED, err.Error())
@@ -120,6 +122,7 @@ func (r *Roll) rollBack() error {
 			),
 		)
 	}
+	//更改属主
 	err = afis.ChownDirR(r.Dir, r.OsUser)
 	if err != nil {
 		r.constructRS(rollBackStepCodeRoll, common.ReturnCode_FAILED, err.Error())

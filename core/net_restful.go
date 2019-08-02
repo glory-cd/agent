@@ -41,7 +41,7 @@ func DealRecieveService(w http.ResponseWriter, r *http.Request) {
 		}
 		//增加到Agent中
 		CurAgent.AddService(service)
-
+		//设置响应头，并响应请求
 		w.WriteHeader(http.StatusOK)
 		_, _ = fmt.Fprintf(w, "New Register successful: %s\n", service.ServiceID)
 		return
@@ -66,6 +66,7 @@ func DealRecieveService(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+//将executor.Service以json格式写入etcd
 func writeJson(s executor.Service) error {
 	jsonWithId, err := executor.NewJsonFromService(s)
 	if err != nil {

@@ -4,6 +4,7 @@ import (
 	"archive/zip"
 	"crypto/md5"
 	"encoding/hex"
+	"github.com/glory-cd/utils/log"
 	"github.com/hashicorp/go-getter"
 	"github.com/pkg/errors"
 	"github.com/satori/go.uuid"
@@ -360,7 +361,7 @@ func IsUser(uname string) bool {
 	return true
 }
 
-//解压所zip
+//解压zip
 func Unzip(archive, target string) error {
 	reader, err := zip.OpenReader(archive)
 	if err != nil {
@@ -372,9 +373,9 @@ func Unzip(archive, target string) error {
 	}
 
 	for _, file := range reader.File {
-		path := filepath.Join(target, file.Name)
+		unzippath := filepath.Join(target, file.Name)
 		if file.FileInfo().IsDir() {
-			err := os.MkdirAll(path, file.Mode())
+			err := os.MkdirAll(unzippath, file.Mode())
 			if err != nil {
 				return errors.WithStack(err)
 			}
@@ -387,7 +388,7 @@ func Unzip(archive, target string) error {
 		}
 		defer fileReader.Close()
 
-		targetFile, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, file.Mode())
+		targetFile, err := os.OpenFile(unzippath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, file.Mode())
 		if err != nil {
 			return errors.WithStack(err)
 		}
@@ -410,14 +411,26 @@ func Zipit(source, target, filter string) error {
 			return errors.WithStack(err)
 		}
 	}
+	//创建zip包文件
 	zipfile, err := os.Create(target)
 	if err != nil {
 		return errors.WithStack(err)
 	}
-	defer zipfile.Close()
 
-	archive := zip.NewWriter(zipfile)
-	defer archive.Close()
+	defer func() {
+		if err := zipfile.Close(); err != nil{
+			log.Slogger.Errorf("*File close error: %s, file: %s", err.Error(), zipfile.Name())
+		}
+	}()
+
+	//创建zip.Writer
+	zw := zip.NewWriter(zipfile)
+
+	defer func() {
+		if err := zw.Close(); err != nil{
+			log.Slogger.Errorf("zipwriter close error: %s", err.Error())
+		}
+	}()
 
 	info, err := os.Stat(source)
 	if err != nil {
@@ -445,7 +458,7 @@ func Zipit(source, target, filter string) error {
 		if ism {
 			return nil
 		}
-
+		//创建文件头
 		header, err := zip.FileInfoHeader(info)
 		if err != nil {
 			return errors.WithStack(err)
@@ -460,8 +473,8 @@ func Zipit(source, target, filter string) error {
 		} else {
 			header.Method = zip.Deflate
 		}
-
-		writer, err := archive.CreateHeader(header)
+		//写入文件头信息
+		writer, err := zw.CreateHeader(header)
 		if err != nil {
 			return errors.WithStack(err)
 		}
@@ -469,13 +482,19 @@ func Zipit(source, target, filter string) error {
 		if info.IsDir() {
 			return nil
 		}
-
+		//写入文件内容
 		file, err := os.Open(path)
 		if err != nil {
 			return errors.WithStack(err)
 		}
-		defer file.Close()
+
+		defer func() {
+			if err := file.Close(); err != nil{
+				log.Slogger.Errorf("*File close error: %s, file: %s", err.Error(), file.Name())
+			}
+		}()
 		_, err = io.Copy(writer, file)
+
 		return errors.WithStack(err)
 	})
 

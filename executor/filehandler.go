@@ -1,10 +1,10 @@
 package executor
 
 type FileHandler interface {
+	// upload file to file server
 	Upload() error
-
+	//download file from file server
 	Get() (string, error)
-
 	// SetClient allows a getter to know it's client
 	// in order to access client's Get functions or
 	// progress tracking.

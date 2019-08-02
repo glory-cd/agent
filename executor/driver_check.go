@@ -70,6 +70,9 @@ func (c *Check) Exec(out chan<- Result) {
 	c.constructRS(common.ReturnCode_SUCCESS, status)
 }
 
+//根据pid号检查进程状态
+// R: Running S: Sleep T: Stop I: Idle
+// Z: Zombie W: Wait L: Lock
 func (c *Check) check(pid int32) (string, error) {
 	p, err := process.NewProcess(pid)
 	if err != nil {
@@ -85,7 +88,7 @@ func (c *Check) check(pid int32) (string, error) {
 	return stat, nil
 }
 
-//读取pid文件
+//读取pid文件,获得pid
 func (c *Check) getPid() (pid int32, e error) {
 	if !afis.IsFile(c.PidFile) {
 		e = errors.WithStack(NewPathError(c.PidFile, "Check PidFile Faild"))
