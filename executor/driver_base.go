@@ -6,6 +6,7 @@ import (
 	"github.com/pkg/errors"
 	"io/ioutil"
 	"path/filepath"
+	"strings"
 )
 
 type driver struct {
@@ -45,5 +46,5 @@ func (d *driver) readServiceVerion() (string, error) {
 		return "", errors.WithStack(err)
 	}
 
-	return string(path), nil
+	return strings.TrimSpace(string(path)), nil
 }

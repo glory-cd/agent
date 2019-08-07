@@ -16,23 +16,11 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"time"
 )
 
 type Check struct {
 	driver
 	rs Result
-}
-
-//构造ResultService
-func (c *Check) constructRS(rcode common.ExecuteReturnCode, errstr string) {
-	c.rs.AppendResultStep(
-		1,
-		"CHECK",
-		rcode,
-		errstr,
-		time.Now().UnixNano(),
-	)
 }
 
 func (c *Check) Exec(out chan<- Result) {
@@ -42,7 +30,7 @@ func (c *Check) Exec(out chan<- Result) {
 
 		//断言err的接口类型为CoulsonError
 		if err != nil {
-			c.rs.ReturnCode = common.ReturnCode_FAILED
+			c.rs.ReturnCode = common.ReturnCodeFailed
 			c.rs.ReturnMsg = err.Error()
 			log.Slogger.Debugf("Result:%+v", c.rs)
 
@@ -59,15 +47,15 @@ func (c *Check) Exec(out chan<- Result) {
 	}()
 	pid, err := c.getPid()
 	if err != nil {
-		c.constructRS(common.ReturnCode_FAILED, err.Error())
+		c.rs.AppendFailedStep(stepNameGetPid, err)
 		return
 	}
-	status, err := c.check(pid)
+	_, err = c.check(pid)
 	if err != nil {
-		c.constructRS(common.ReturnCode_FAILED, err.Error())
+		c.rs.AppendFailedStep(stepNameCheck, err)
 		return
 	}
-	c.constructRS(common.ReturnCode_SUCCESS, status)
+	c.rs.AppendSuccessStep(stepNameCheck)
 }
 
 //根据pid号检查进程状态
@@ -100,7 +88,12 @@ func (c *Check) getPid() (pid int32, e error) {
 		e = errors.WithStack(e)
 		return
 	}
-	defer pidFile.Close()
+	//延迟关闭文件描述符
+	defer func() {
+		if err := pidFile.Close(); err != nil{
+			log.Slogger.Errorf("*File Close Error: %s, File: %s", err.Error(), pidFile.Name())
+		}
+	}()
 	//读取
 	content, e := ioutil.ReadAll(pidFile)
 	if e != nil {

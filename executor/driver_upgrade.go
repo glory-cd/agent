@@ -35,47 +35,46 @@ func (u *Upgrade) Exec(out chan<- Result) {
 	//执行备份
 	err = u.backup()
 	if err != nil {
-		u.constructRS(upgradeStepCodeBackup, common.ReturnCode_FAILED, err.Error())
+		u.rs.AppendFailedStep(stepNameBackup, err)
 		return
 	}
-
-	u.constructRS(upgradeStepCodeBackup, common.ReturnCode_SUCCESS, common.ReturnOKMsg)
+	u.rs.AppendSuccessStep(stepNameBackup)
 
 	//创建临时代码目录
 	err = u.createTempDir()
 	if err != nil {
-		u.constructRS(upgradeStepCodeGetCode, common.ReturnCode_FAILED, err.Error())
+		u.rs.AppendFailedStep(stepNameGetCode, err)
 		return
 	}
 	//下载代码
 	err = u.getCode()
 	if err != nil {
-		u.constructRS(upgradeStepCodeGetCode, common.ReturnCode_FAILED, err.Error())
+		u.rs.AppendFailedStep(stepNameGetCode, err)
 		return
 	}
-	u.constructRS(upgradeStepCodeGetCode, common.ReturnCode_SUCCESS, common.ReturnOKMsg)
+	u.rs.AppendSuccessStep(stepNameGetCode)
 
 	//检查代码以及service
 	err = u.checkenv()
 	if err != nil {
-		u.constructRS(upgradeStepCodeCheck, common.ReturnCode_FAILED, err.Error())
+		u.rs.AppendFailedStep(stepNameCheckEnv, err)
 		return
 	}
-	u.constructRS(upgradeStepCodeCheck, common.ReturnCode_SUCCESS, common.ReturnOKMsg)
+	u.rs.AppendSuccessStep(stepNameCheckEnv)
 
 	//执行升级
 	err = u.upgrade()
 	if err != nil {
-		u.constructRS(upgradeStepCodeUpgrade, common.ReturnCode_FAILED, err.Error())
+		u.rs.AppendFailedStep(stepNameUpgrade, err)
 		return
 	}
-	u.constructRS(upgradeStepCodeUpgrade, common.ReturnCode_SUCCESS, common.ReturnOKMsg)
+	u.rs.AppendSuccessStep(stepNameUpgrade)
 
 }
 
 func (u *Upgrade) deferHandleFunc(err *error, out chan<- Result) {
 	if *err != nil {
-		u.rs.ReturnCode = common.ReturnCode_FAILED
+		u.rs.ReturnCode = common.ReturnCodeFailed
 		u.rs.ReturnMsg = (*err).Error()
 		//断言err的接口类型为CoulsonError
 		if ce, ok := errors.Cause(*err).(CoulsonError); ok {
@@ -104,17 +103,6 @@ func (u *Upgrade) deferHandleFunc(err *error, out chan<- Result) {
 	//结果写入chanel
 	out <- u.rs
 	log.Slogger.Infof("退出goroutine.")
-}
-
-//构造ResultService
-func (u *Upgrade) constructRS(step int, rcode common.ExecuteReturnCode, errstr string) {
-	u.rs.AppendResultStep(
-		step,
-		upgradeStepName[step],
-		rcode,
-		errstr,
-		time.Now().UnixNano(),
-	)
 }
 
 //检查环境

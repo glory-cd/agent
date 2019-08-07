@@ -7,17 +7,17 @@ func (t *Executor) Execute() (resultJson string) {
 	var dr Drive
 	result := NewResultPointer(t.Identiy)
 	switch t.OP {
-	case common.Operate_DEP:
+	case common.OperateDEP:
 		dr = &Deploy{driver: driver{Task: t.Task, Service: t.Service}, rs: *result}
-	case common.Operate_UPG:
+	case common.OperateUPG:
 		dr = &Upgrade{driver: driver{Task: t.Task, Service: t.Service}, rs: *result}
-	case common.Operate_STA, common.Operate_SHU, common.Operate_RES:
+	case common.OperateSTA, common.OperateSHU, common.OperateRES:
 		dr = &Rss{driver: driver{Task: t.Task, Service: t.Service}, rs: *result}
-	case common.Operate_CHE:
+	case common.OperateCHE:
 		dr = &Check{driver: driver{Task: t.Task, Service: t.Service}, rs: *result}
-	case common.Operate_BAK:
+	case common.OperateBAK:
 		dr = &Backup{driver: driver{Task: t.Task, Service: t.Service}, rs: *result}
-	case common.Operate_ROL:
+	case common.OperateROL:
 		dr = &Roll{driver: driver{Task: t.Task, Service: t.Service}, rs: *result}
 	default:
 		return

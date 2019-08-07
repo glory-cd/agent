@@ -19,24 +19,13 @@ type Backup struct {
 	rs Result
 }
 
-//构造ResultService
-func (b *Backup) constructRS(rcode common.ExecuteReturnCode, errstr string) {
-	b.rs.AppendResultStep(
-		1,
-		"BACKUP",
-		rcode,
-		errstr,
-		time.Now().UnixNano(),
-	)
-}
-
 func (b *Backup) Exec(out chan<- Result) {
 	log.Slogger.Infof("开始[BACKUP]服务：%s,%s", b.ServiceID, b.Dir)
 	var err error
 	defer func() {
 		//断言err的接口类型为CoulsonError
 		if err != nil {
-			b.rs.ReturnCode = common.ReturnCode_FAILED
+			b.rs.ReturnCode = common.ReturnCodeFailed
 			b.rs.ReturnMsg = err.Error()
 			log.Slogger.Debugf("Result:%+v", b.rs)
 			if ce, ok := errors.Cause(err).(CoulsonError); ok {
@@ -58,10 +47,10 @@ func (b *Backup) Exec(out chan<- Result) {
 	//备份并上传
 	err = b.backupService(dst, upath)
 
-	if err != nil{
-		b.constructRS(common.ReturnCode_FAILED, err.Error())
+	if err != nil {
+		b.rs.AppendFailedStep(stepNameBackup, err)
 		return
 	}
 
-	b.constructRS(common.ReturnCode_SUCCESS, common.ReturnOKMsg)
+	b.rs.AppendSuccessStep(stepNameBackup)
 }

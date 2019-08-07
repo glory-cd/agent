@@ -7,6 +7,7 @@ package executor
 import (
 	"encoding/json"
 	"github.com/glory-cd/agent/common"
+	"time"
 )
 
 type Result struct {
@@ -27,7 +28,7 @@ type ResultStep struct {
 func NewResultPointer(id Identiy) *Result {
 	var r = new(Result)
 	r.Identiy = id
-	r.ReturnCode = common.ReturnCode_SUCCESS
+	r.ReturnCode = common.ReturnCodeSuccess
 	r.ReturnMsg = common.ReturnOKMsg
 	return r
 }
@@ -42,7 +43,23 @@ func (r *Result) ToJsonString() (string, error) {
 }
 
 //构造StepInfo
-func (r *Result) AppendResultStep(stepnum int, stepname string, stepstate common.ExecuteReturnCode, stepmsg string, rtime int64) {
-	s := ResultStep{stepnum, stepname, stepstate, stepmsg, rtime}
+func (r *Result) AppendFailedStep(stepname string, err error) {
+	stepstate := common.ReturnCodeFailed
+	stepmsg := err.Error()
+
+	stepnum := len(r.StepInfo) + 1
+
+	s := ResultStep{stepnum, stepname, stepstate, stepmsg, time.Now().UnixNano()}
+
+	r.StepInfo = append(r.StepInfo, s)
+}
+
+func (r *Result) AppendSuccessStep(stepname string) {
+	stepstate := common.ReturnCodeSuccess
+	stepmsg := common.ReturnOKMsg
+	stepnum := len(r.StepInfo) + 1
+
+	s := ResultStep{stepnum, stepname, stepstate, stepmsg, time.Now().UnixNano()}
+
 	r.StepInfo = append(r.StepInfo, s)
 }

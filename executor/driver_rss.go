@@ -17,7 +17,6 @@ import (
 	"path/filepath"
 	"strconv"
 	"syscall"
-	"time"
 )
 
 type Rss struct {
@@ -25,21 +24,10 @@ type Rss struct {
 	rs Result
 }
 
-//构造ResultService
-func (r *Rss) constructRS(rcode common.ExecuteReturnCode, stepname, errstr string) {
-	r.rs.AppendResultStep(
-		1,
-		stepname,
-		rcode,
-		errstr,
-		time.Now().UnixNano(),
-	)
-}
-
 func (r *Rss) deferHandleFunc(err *error, out chan<- Result) {
 	//断言err的接口类型为CoulsonError
 	if *err != nil {
-		r.rs.ReturnCode = common.ReturnCode_FAILED
+		r.rs.ReturnCode = common.ReturnCodeFailed
 		r.rs.ReturnMsg = (*err).Error()
 		if ce, ok := errors.Cause(*err).(CoulsonError); ok {
 			log.Slogger.Errorf("encounter an error:%+v, the kv is: %s", *err, ce.Kv())
@@ -57,46 +45,46 @@ func (r *Rss) Exec(out chan<- Result) {
 	var operateString string
 
 	switch r.OP {
-	case common.Operate_STA:
+	case common.OperateSTA:
 		operateString = "START"
-	case common.Operate_SHU:
+	case common.OperateSHU:
 		operateString = "STOP"
-	case common.Operate_RES:
+	case common.OperateRES:
 		operateString = "RESTART"
 	}
-
 	log.Slogger.Infof("开始[%s]服务：%s,%s", operateString, r.ServiceID, r.Dir)
+
 	var err error
 	defer r.deferHandleFunc(&err, out)
 
 	switch r.OP {
-	case common.Operate_STA:
+	case common.OperateSTA:
 		err = r.start()
 		if err != nil {
-			r.constructRS(common.ReturnCode_FAILED, operateString, err.Error())
+			r.rs.AppendFailedStep(stepNameStart, err)
 			return
 		}
-		r.constructRS(common.ReturnCode_SUCCESS, operateString, common.ReturnOKMsg)
-	case common.Operate_SHU:
+		r.rs.AppendSuccessStep(stepNameStart)
+	case common.OperateSHU:
 		err = r.shutdown()
 		if err != nil {
-			r.constructRS(common.ReturnCode_FAILED, operateString, err.Error())
+			r.rs.AppendFailedStep(stepNameStop, err)
 			return
 		}
-		r.constructRS(common.ReturnCode_SUCCESS, operateString, common.ReturnOKMsg)
-	case common.Operate_RES:
+		r.rs.AppendSuccessStep(stepNameStop)
+	case common.OperateRES:
 		err = r.shutdown()
 		if err != nil {
-			r.constructRS(common.ReturnCode_FAILED, "STOP", err.Error())
+			r.rs.AppendFailedStep(stepNameStop, err)
 			return
 		}
 
 		err = r.start()
 		if err != nil {
-			r.constructRS(common.ReturnCode_FAILED, "START", err.Error())
+			r.rs.AppendFailedStep(stepNameStart, err)
 			return
 		}
-		r.constructRS(common.ReturnCode_SUCCESS, operateString, common.ReturnOKMsg)
+		r.rs.AppendSuccessStep(stepNameRestart)
 	}
 }
 

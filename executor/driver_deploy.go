@@ -16,7 +16,6 @@ import (
 	"os"
 	"os/exec"
 	"path"
-	"time"
 )
 
 type Deploy struct {
@@ -37,41 +36,41 @@ func (d *Deploy) Exec(out chan<- Result) {
 	//检查环境
 	err = d.checkenv()
 	if err != nil {
-		d.constructRS(deployStepCodeCheckEnv, common.ReturnCode_FAILED, err.Error())
+		d.rs.AppendFailedStep(stepNameCheckEnv, err)
 		return
 	}
-	d.constructRS(deployStepCodeCheckEnv, common.ReturnCode_SUCCESS, common.ReturnOKMsg)
+	d.rs.AppendSuccessStep(stepNameCheckEnv)
 
 	//初始化用户目录等
 	err = d.initenv(&d.rs)
 	if err != nil {
-		d.constructRS(deployStepCodeInitEnv, common.ReturnCode_FAILED, err.Error())
+		d.rs.AppendFailedStep(stepNameInitEnv, err)
 		return
 	}
-	d.constructRS(deployStepCodeInitEnv, common.ReturnCode_SUCCESS, common.ReturnOKMsg)
+	d.rs.AppendSuccessStep(stepNameInitEnv)
 
 	//下载代码
 	err = d.getCode(&d.rs)
 	if err != nil {
-		d.constructRS(deployStepCodeGetCode, common.ReturnCode_FAILED, err.Error())
+		d.rs.AppendFailedStep(stepNameGetCode, err)
 		return
 	}
-	d.constructRS(deployStepCodeGetCode, common.ReturnCode_SUCCESS, common.ReturnOKMsg)
+	d.rs.AppendSuccessStep(stepNameGetCode)
 
 	//执行部署
 	err = d.deploy(&d.rs)
 	if err != nil {
-		d.constructRS(deployStepCodeDeploy, common.ReturnCode_FAILED, err.Error())
+		d.rs.AppendFailedStep(stepNameDeploy, err)
 		return
 	}
-	d.constructRS(deployStepCodeDeploy, common.ReturnCode_SUCCESS, common.ReturnOKMsg)
+	d.rs.AppendSuccessStep(stepNameDeploy)
 
 }
 
 func (d *Deploy) deferHandleFunc(err *error, out chan<- Result) {
 	//断言err的接口类型为CoulsonError
 	if *err != nil {
-		d.rs.ReturnCode = common.ReturnCode_FAILED
+		d.rs.ReturnCode = common.ReturnCodeFailed
 		d.rs.ReturnMsg = (*err).Error()
 		if ce, ok := errors.Cause(*err).(CoulsonError); ok {
 			log.Slogger.Errorf("encounter an error:%+v, the kv is: %s", *err, ce.Kv())
@@ -98,17 +97,6 @@ func (d *Deploy) deferHandleFunc(err *error, out chan<- Result) {
 	//结果写入chanel
 	out <- d.rs
 	log.Slogger.Infof("退出goroutine.")
-}
-
-//构造ResultService
-func (d *Deploy) constructRS(step int, rcode common.ExecuteReturnCode, errstr string) {
-	d.rs.AppendResultStep(
-		step,
-		deployStepName[step],
-		rcode,
-		errstr,
-		time.Now().UnixNano(),
-	)
 }
 
 //获取代码并解压到临时目录

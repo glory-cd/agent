@@ -3,42 +3,19 @@ package executor
 import "encoding/json"
 
 const (
-	deployStepCodeCheckEnv int = iota + 1
-	deployStepCodeInitEnv
-	deployStepCodeGetCode
-	deployStepCodeDeploy
+	stepNameCheckEnv string = "checkenv"
+	stepNameInitEnv         = "initenv"
+	stepNameGetCode         = "getcode"
+	stepNameDeploy          = "deploy"
+	stepNameBackup          = "backup"
+	stepNameUpgrade         = "upgrade"
+	stepNameRoll            = "rollback"
+	stepNameCheck           = "check"
+	stepNameGetPid          = "getpid"
+	stepNameStart           = "start"
+	stepNameStop            = "stop"
+	stepNameRestart         = "restart"
 )
-
-var deployStepName = map[int]string{
-	deployStepCodeCheckEnv: "checkenv",
-	deployStepCodeInitEnv:  "initenv",
-	deployStepCodeGetCode:  "getcode",
-	deployStepCodeDeploy:   "deploy",
-}
-
-const (
-	upgradeStepCodeBackup int = iota + 1
-	upgradeStepCodeGetCode
-	upgradeStepCodeCheck
-	upgradeStepCodeUpgrade
-)
-
-var upgradeStepName = map[int]string{
-	upgradeStepCodeBackup:  "backup",
-	upgradeStepCodeGetCode: "getcode",
-	upgradeStepCodeCheck:   "checkenv",
-	upgradeStepCodeUpgrade: "upgrade",
-}
-
-const (
-	rollBackStepCodeGetCode int = iota + 1
-	rollBackStepCodeRoll
-)
-
-var rollBackStepName = map[int]string{
-	rollBackStepCodeGetCode: "getcode",
-	rollBackStepCodeRoll: "rollback",
-}
 
 type CoulsonError interface {
 	error
@@ -49,7 +26,6 @@ type pathError struct {
 	Path   string `json:"path"`
 	errInf string
 }
-
 
 func kv(ceStruct CoulsonError) string {
 	jsonByte, err := json.Marshal(ceStruct)
@@ -169,8 +145,8 @@ type cmdError struct {
 
 func NewCmdError(thisCMD, thisErr string) *cmdError {
 	return &cmdError{
-		CMD:        thisCMD,
-		errInf:     thisErr,
+		CMD:    thisCMD,
+		errInf: thisErr,
 	}
 }
 
