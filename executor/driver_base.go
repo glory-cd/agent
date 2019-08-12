@@ -5,6 +5,7 @@ import (
 	"github.com/glory-cd/utils/afis"
 	"github.com/pkg/errors"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 )
@@ -16,6 +17,13 @@ type driver struct {
 
 //备份dir到临时文件，并上传至文件服务器
 func (d *driver) backupService(tmpdst, uploadpath string) error {
+	//如果tmpdst目录不存在则创建
+	if !afis.IsExists(filepath.Dir(tmpdst)) {
+		err := os.MkdirAll(filepath.Dir(tmpdst), 0755)
+		if err != nil {
+			return err
+		}
+	}
 	// 压缩文件
 	src := d.Dir
 	err := afis.Zipit(src, tmpdst, "*.log")

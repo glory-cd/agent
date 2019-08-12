@@ -42,7 +42,8 @@ func (b *Backup) Exec(out chan<- Result) {
 
 	//构建临时目标文件和上传路径
 	filename := filepath.Base(b.Dir) + time.Now().Format("20060102150405.00000") + ".zip"
-	dst := filepath.Join("/tmp/backup", filename)
+	dst := filepath.Join(common.TempBackupPath, filename)
+
 	upath := filepath.Join(common.AgentID, b.ServiceID)
 	//备份并上传
 	err = b.backupService(dst, upath)

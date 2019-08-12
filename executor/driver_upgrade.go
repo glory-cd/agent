@@ -392,7 +392,7 @@ func (u *Upgrade) backup() error {
 	//构建目标文件和上传路径
 	filename := filepath.Base(u.Dir) + time.Now().Format("20060102150405.00000") + ".zip"
 
-	dst := filepath.Join("/tmp/backup", filename)
+	dst := filepath.Join(common.TempBackupPath, filename)
 
 	upath := filepath.Join(common.AgentID, u.ServiceID)
 	//备份到目标文件
