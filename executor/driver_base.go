@@ -1,6 +1,7 @@
 package executor
 
 import (
+	"fmt"
 	"github.com/glory-cd/agent/common"
 	"github.com/glory-cd/utils/afis"
 	"github.com/pkg/errors"
@@ -55,4 +56,25 @@ func (d *driver) readServiceVerion() (string, error) {
 	}
 
 	return strings.TrimSpace(string(path)), nil
+}
+
+func (d *driver) getBinPath(cmd string) (string, error) {
+	var cmdpath string
+
+	path := os.Getenv("PATH")
+
+	pathSlice := strings.Split(path, string(os.PathListSeparator))
+
+	for _, p := range pathSlice {
+		fullcmd := filepath.Join(p, cmd)
+		if afis.IsFile(fullcmd) && afis.IsExecutable(fullcmd) {
+			cmdpath = fullcmd
+			break
+		}
+	}
+
+	if cmdpath == "" {
+		return "", fmt.Errorf("command not found: %s", cmd)
+	}
+	return cmdpath, nil
 }

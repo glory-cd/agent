@@ -44,10 +44,8 @@ func (d *Deploy) Exec(out chan<- Result) {
 	//初始化用户目录等
 	err = d.initenv(&d.rs)
 	if err != nil {
-		d.rs.AppendFailedStep(stepNameInitEnv, err)
 		return
 	}
-	d.rs.AppendSuccessStep(stepNameInitEnv)
 
 	//下载代码
 	err = d.getCode(&d.rs)
@@ -174,35 +172,55 @@ func (d *Deploy) checkenv() error {
 	return nil
 }
 
+func (d *Deploy) createUser() error{
+	cmdText, err := d.getBinPath("useradd")
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	options := []string{"-m"}
+	if d.UserPass != ""{
+		withpass := []string{"-p", d.UserPass}
+		options = append(options, withpass...)
+	}
+	options = append(options, d.OsUser)
+	cmd := exec.Command(cmdText, options...)
+	//处理stdout和stderr
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+	//执行
+	err = cmd.Run()
+	_, errStr := string(stdout.Bytes()), string(stderr.Bytes())
+	if err != nil {
+		return errors.Wrap(err, errStr)
+	}
+
+	return nil
+}
+
 //初始化环境
 func (d *Deploy) initenv(r *Result) error {
 	//若用户不存在则创建用户
 	if !d.isuser {
-		var cmdText string
-		if afis.IsExists("/usr/bin/useradd") {
-			cmdText = "/usr/bin/useradd"
-		} else {
-			cmdText = "/usr/sbin/useradd"
-		}
-		cmd := exec.Command(cmdText, "-m", d.OsUser)
-		//处理stdout和stderr
-		var stdout, stderr bytes.Buffer
-		cmd.Stdout = &stdout
-		cmd.Stderr = &stderr
-		//执行
-		err := cmd.Run()
-		_, errStr := string(stdout.Bytes()), string(stderr.Bytes())
+		err := d.createUser()
 		if err != nil {
-			return errors.Wrap(err, errStr)
+			d.rs.AppendFailedStep(stepNameCreateUser, err)
+			return err
 		}
+		d.rs.AppendSuccessStep(stepNameCreateUser)
 		log.Slogger.Infof("create user %s success!", d.Service.OsUser)
+	} else {
+		d.rs.AppendFailedStep(stepNameCreateUser, errors.New("The user already exists"))
 	}
 
 	//创建临时存放代码目录
 	dir, err := ioutil.TempDir("", "dep_")
 	if err != nil {
+		d.rs.AppendFailedStep(stepNameCreateTmpDir, err)
 		return errors.WithStack(NewPathError("/tmp/dep_", err.Error()))
 	}
+	d.rs.AppendSuccessStep(stepNameCreateTmpDir)
 	d.tempdir = dir
 	log.Slogger.Infof("temp dir is : %s", d.tempdir)
 

@@ -4,7 +4,8 @@ import "encoding/json"
 
 const (
 	stepNameCheckEnv string = "checkenv"
-	stepNameInitEnv         = "initenv"
+	stepNameCreateUser		= "CreateUser"
+	stepNameCreateTmpDir	= "CreateTmpDir"
 	stepNameGetCode         = "getcode"
 	stepNameDeploy          = "deploy"
 	stepNameBackup          = "backup"

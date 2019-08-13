@@ -418,7 +418,7 @@ func Zipit(source, target, filter string) error {
 	}
 
 	defer func() {
-		if err := zipfile.Close(); err != nil{
+		if err := zipfile.Close(); err != nil {
 			log.Slogger.Errorf("*File close error: %s, file: %s", err.Error(), zipfile.Name())
 		}
 	}()
@@ -427,7 +427,7 @@ func Zipit(source, target, filter string) error {
 	zw := zip.NewWriter(zipfile)
 
 	defer func() {
-		if err := zw.Close(); err != nil{
+		if err := zw.Close(); err != nil {
 			log.Slogger.Errorf("zipwriter close error: %s", err.Error())
 		}
 	}()
@@ -489,7 +489,7 @@ func Zipit(source, target, filter string) error {
 		}
 
 		defer func() {
-			if err := file.Close(); err != nil{
+			if err := file.Close(); err != nil {
 				log.Slogger.Errorf("*File close error: %s, file: %s", err.Error(), file.Name())
 			}
 		}()
@@ -503,4 +503,22 @@ func Zipit(source, target, filter string) error {
 	}
 
 	return nil
+}
+
+//check file is executable
+func IsExecutable(path string) bool {
+	//Filemode with execute permissions
+	var exemode os.FileMode = 0111
+	//get path filemode
+	fileinfo, err := os.Stat(path)
+	if err != nil {
+		return false
+	}
+	filemode := fileinfo.Mode()
+	//& operation
+	r := exemode & filemode
+	if uint32(r) != 0 {
+		return true
+	}
+	return false
 }
