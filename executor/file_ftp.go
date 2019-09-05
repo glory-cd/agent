@@ -158,6 +158,10 @@ func (fu *FtpFileHandler) Get() (string, error){
 
 	log.Slogger.Debugf("download file sucess: %s", filepath.Join(tmpdir, downFile))
 
+	elapsed := time.Since(begin) //计时结束
+
+	log.Slogger.Infof("download elapsed: ", elapsed)
+
 	//解压下载的文件
 	err = afis.Unzip(filepath.Join(tmpdir, downFile), tmpdir)
 
@@ -167,9 +171,6 @@ func (fu *FtpFileHandler) Get() (string, error){
 
 	log.Slogger.Debugf("unzip file sucess: %s", filepath.Join(tmpdir, downFile))
 
-	elapsed := time.Since(begin) //计时结束
-
-	log.Slogger.Infof("download elapsed: ", elapsed)
 
 	return tmpdir, nil
 }

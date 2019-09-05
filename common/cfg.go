@@ -31,15 +31,17 @@ type GlobalConfig struct {
 	Debug      bool         `json:"debug"`
 	Redis      *RedisConfig `json:"redis"`
 	Rest       *Rest        `json:"rest"`
-	FileServer *FileServer  `json:"fileserver"`
+	FileServer *StoreServer `json:"storeserver"`
 	Log        *LogConfig   `json:"log"`
 }
 
-type FileServer struct {
+type StoreServer struct {
 	Addr     string `json:"addr"`
 	Type     string `json:"type"`
 	UserName string `json:"username"`
 	PassWord string `json:"password"`
+	S3Region string `json:"s3region"`
+	S3Bucket string `json:"s3bucket"`
 }
 
 var (

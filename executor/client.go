@@ -14,12 +14,19 @@ type Client struct {
 	Type string
 
 	Handler FileHandler
-
+	//the username for http basic authorization or FTP.
+	// if s3 is used, Pass is AWSAccessKeyId.
 	User string
-
+	//the base64.StdEncoding.EncodeToString([]byte(password)) for http basic authorization or FTP.
+	// if s3 is used, Pass is base64.StdEncoding.EncodeToString([]byte(AWSSecretAccessKey)).
 	Pass string
-
+	//RelativePath is path+file for Get
+	//RelativePath is path for Upload
 	RelativePath string
+	// aws s3 region
+	S3Region string
+	// aws s3 bucket
+	S3Bucket string
 }
 
 //初始化handler并为该handler设置client
@@ -29,6 +36,8 @@ func (c *Client) init() error{
 		c.Handler = new(HttpFileHandler)
 	case "ftp":
 		c.Handler = new(FtpFileHandler)
+	case "s3":
+		c.Handler = new(S3FileHandler)
 	default:
 		return fmt.Errorf("unsupported uploader: %s", c.Type)
 	}

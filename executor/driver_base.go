@@ -34,11 +34,8 @@ func (d *driver) backupService(tmpdst, uploadpath string) error {
 	//上传到文件服务器
 	fileServer := common.Config().FileServer
 	err = Upload(
+		fileServer,
 		tmpdst,
-		fileServer.Addr,
-		fileServer.Type,
-		fileServer.UserName,
-		fileServer.PassWord,
 		uploadpath)
 
 	if err != nil {

@@ -34,7 +34,7 @@ Then put  a key named `/agentConfig/template`in etcd:
 {
   "debug": true,
   "redis": {
-    "host": "your-redis-address:your-redis-port",
+    "host": "192.168.1.41:6133",
     "maxidele": 3,
     "maxactive": 0,
     "timeout": 300
@@ -42,12 +42,14 @@ Then put  a key named `/agentConfig/template`in etcd:
   "rest": {
     "addr": "127.0.0.1:9527"
   },
-  "fileserver":{
-    "addr":"192.168.1.75:32749",
-    "type":"http",
-    "username":"admin",
-    "password":"YWZpczIwMTk="
-  },
+  "storeserver":{
+        "addr":"192.168.1.75:32749",
+        "type":"http",
+        "username":"admin",
+        "password":"YWZpczIwMTk=",
+        "s3region":"",
+        "s3bucket":""
+    },
   "log": {
     "loglevel": "debug",
     "filename": "/var/log/agent.log",
@@ -57,6 +59,7 @@ Then put  a key named `/agentConfig/template`in etcd:
     "compress": true
   }
 }
+
 ```
 
 ## Running agent
@@ -132,12 +135,12 @@ EOF
 
 - code package format
 
-**Compressed package named with module name, `zip`, `tar.gz` formats are supported**
+**Compressed package named with module name, only `zip` format is supported**
 
 Suppose you have a test module,the compressed package must like this:
 
 ```shell
-test.tar.gz
+test.zip
     test/
     ├── bin
     ├── config

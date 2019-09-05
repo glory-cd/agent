@@ -1,34 +1,41 @@
 package executor
 
+import "github.com/glory-cd/agent/common"
+
 type FileHandler interface {
 	// upload file to file server
 	Upload() error
-	//download file from file server
+	//download file from file server, it returns a dir where Stores the unzipped package
 	Get() (string, error)
-	// SetClient allows a getter to know it's client
-	// in order to access client's Get functions or
+	// SetClient allows a filehandler to know it's client
+	// in order to access client's Get&Upload functions or
 	// progress tracking.
 	SetClient(*Client)
 }
 
-func Upload(src, addr, utype, user, pass, path string) error {
+//src is file absolute path, path is a path
+func Upload(fs *common.StoreServer, src, path string) error {
 	return (&Client{
 		Src:          src,
-		Addr:         addr,
-		Type:         utype,
-		User:         user,
-		Pass:         pass,
+		Addr:         fs.Addr,
+		Type:         fs.Type,
+		User:         fs.UserName,
+		Pass:         fs.PassWord,
+		S3Region:     fs.S3Region,
+		S3Bucket:     fs.S3Bucket,
 		RelativePath: path,
 	}).Upload()
 }
 
-
-func Get(addr, utype, user, pass, path string) (string, error) {
+//path is file absolute path
+func Get(fs *common.StoreServer, path string) (string, error) {
 	return (&Client{
-		Addr:         addr,
-		Type:         utype,
-		User:         user,
-		Pass:         pass,
+		Addr:         fs.Addr,
+		Type:         fs.Type,
+		User:         fs.UserName,
+		Pass:         fs.PassWord,
+		S3Region:     fs.S3Region,
+		S3Bucket:     fs.S3Bucket,
 		RelativePath: path,
 	}).Get()
 }

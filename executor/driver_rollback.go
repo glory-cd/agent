@@ -66,12 +66,7 @@ func (r *Roll) getCode() error {
 
 	// 从文件服务器获取代码备份
 	fileServer := common.Config().FileServer
-	dir, err := Get(
-		fileServer.Addr,
-		fileServer.Type,
-		fileServer.UserName,
-		fileServer.PassWord,
-		relativePath)
+	dir, err := Get(fileServer, relativePath)
 
 	if err != nil {
 		return err

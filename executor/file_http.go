@@ -20,9 +20,9 @@ import (
 type HttpFileHandler struct {
 	baseHandler
 
-	// Client is the http.Client to use for Get requests.
+	// HTTPClient is the http.HTTPClient to use for Get requests.
 	// This defaults to a cleanhttp.DefaultClient if left unset.
-	Client *http.Client
+	HTTPClient *http.Client
 }
 
 func (hu *HttpFileHandler) Upload() error {
@@ -72,9 +72,9 @@ func (hu *HttpFileHandler) Upload() error {
 	req.Header.Set("Content-Type", writer.FormDataContentType())
 
 	//实例化http client
-	hu.Client = cleanhttp.DefaultClient()
+	hu.HTTPClient = cleanhttp.DefaultClient()
 	//发起请求
-	resp, err := hu.Client.Do(req)
+	resp, err := hu.HTTPClient.Do(req)
 
 	if err != nil {
 		return errors.WithStack(err)
@@ -110,9 +110,9 @@ func (hu *HttpFileHandler) Get() (string, error){
 		return "", err
 	}
 	//创建临时存放代码目录
-	tmpdir, err := ioutil.TempDir("", "rol_")
+	tmpdir, err := ioutil.TempDir("", "http_")
 	if err != nil {
-		return "", errors.WithStack(NewPathError("/tmp/dep_", err.Error()))
+		return "", errors.WithStack(NewPathError("/tmp/http_", err.Error()))
 	}
 	//从url获取代码
 	err = afis.DownloadCode(tmpdir, hu.newPostUrl())
