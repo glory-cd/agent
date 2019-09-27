@@ -47,11 +47,12 @@ func (u *Upgrade) Exec(out chan<- Result) {
 		return
 	}
 	//下载代码
-	err = u.getCode()
+	codedir, err := u.getCode()
 	if err != nil {
 		u.rs.AppendFailedStep(stepNameGetCode, err)
 		return
 	}
+	u.tmpdir = codedir
 	u.rs.AppendSuccessStep(stepNameGetCode)
 
 	//检查代码以及service
@@ -153,21 +154,6 @@ func (u *Upgrade) createTempDir() error {
 	}
 	u.tmpdir = dir
 	log.Slogger.Infof("temp dir is : %s", u.tmpdir)
-	return nil
-}
-
-func (u *Upgrade) getCode() error {
-	//从url获取代码
-	log.Slogger.Debugf("download code from url: %s", u.RemoteCode)
-	//err := afis.DownloadCode(u.tmpdir, u.RemoteCode)
-	fileServer := common.Config().FileServer
-	dir, err := Get(fileServer, u.RemoteCode)
-	if err != nil {
-		return errors.WithStack(NewGetCodeError(u.RemoteCode, err.Error()))
-	}
-	u.tmpdir = dir
-	log.Slogger.Infof("download code to %s", u.tmpdir)
-
 	return nil
 }
 

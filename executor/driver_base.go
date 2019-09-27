@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/glory-cd/agent/common"
 	"github.com/glory-cd/utils/afis"
+	"github.com/glory-cd/utils/log"
 	"github.com/pkg/errors"
 	"io/ioutil"
 	"os"
@@ -55,7 +56,7 @@ func (d *driver) readServiceVerion() (string, error) {
 	return strings.TrimSpace(string(path)), nil
 }
 
-//gets the execution path of the CMD
+//get the execution path of the CMD
 func (d *driver) getBinPath(cmd string) (string, error) {
 	var cmdpath string
 
@@ -75,4 +76,17 @@ func (d *driver) getBinPath(cmd string) (string, error) {
 		return "", fmt.Errorf("command not found: %s", cmd)
 	}
 	return cmdpath, nil
+}
+
+//get code from fileserver
+func (d *driver) getCode() (string, error) {
+	//download code from url
+	fileServer := common.Config().FileServer
+	dir, err := Get(fileServer, d.RemoteCode)
+	if err != nil {
+		return "", err
+	}
+
+	log.Slogger.Infof("download code to %s", dir)
+	return dir, nil
 }

@@ -42,21 +42,22 @@ func (d *Deploy) Exec(out chan<- Result) {
 	d.rs.AppendSuccessStep(stepNameCheckEnv)
 
 	//初始化用户目录等
-	err = d.initenv(&d.rs)
+	err = d.initenv()
 	if err != nil {
 		return
 	}
 
 	//下载代码
-	err = d.getCode(&d.rs)
+	codedir, err := d.getCode()
 	if err != nil {
 		d.rs.AppendFailedStep(stepNameGetCode, err)
 		return
 	}
+	d.tempdir = codedir
 	d.rs.AppendSuccessStep(stepNameGetCode)
 
 	//执行部署
-	err = d.deploy(&d.rs)
+	err = d.deploy()
 	if err != nil {
 		d.rs.AppendFailedStep(stepNameDeploy, err)
 		return
@@ -97,22 +98,8 @@ func (d *Deploy) deferHandleFunc(err *error, out chan<- Result) {
 	log.Slogger.Infof("退出goroutine.")
 }
 
-//获取代码并解压到临时目录
-func (d *Deploy) getCode(r *Result) error {
-	//从url获取代码
-	fileServer := common.Config().FileServer
-	dir, err := Get(fileServer, d.RemoteCode)
-	//err := afis.DownloadCode(d.tempdir, d.RemoteCode)
-	if err != nil {
-		return err
-	}
-	d.tempdir = dir
-	log.Slogger.Infof("download code to %s", d.tempdir)
-	return nil
-}
-
 //部署
-func (d *Deploy) deploy(r *Result) error {
+func (d *Deploy) deploy() error {
 	//创建服务目录
 	err := os.Mkdir(d.Dir, 0755)
 	if err != nil {
@@ -203,7 +190,7 @@ func (d *Deploy) createUser() error{
 }
 
 //初始化环境
-func (d *Deploy) initenv(r *Result) error {
+func (d *Deploy) initenv() error {
 	//若用户不存在则创建用户
 	if !d.isuser {
 		err := d.createUser()
