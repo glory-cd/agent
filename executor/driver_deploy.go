@@ -100,10 +100,13 @@ func (d *Deploy) deferHandleFunc(err *error, out chan<- Result) {
 //获取代码并解压到临时目录
 func (d *Deploy) getCode(r *Result) error {
 	//从url获取代码
-	err := afis.DownloadCode(d.tempdir, d.RemoteCode)
+	fileServer := common.Config().FileServer
+	dir, err := Get(fileServer, d.RemoteCode)
+	//err := afis.DownloadCode(d.tempdir, d.RemoteCode)
 	if err != nil {
-		return errors.WithStack(NewGetCodeError(d.RemoteCode, err.Error()))
+		return err
 	}
+	d.tempdir = dir
 	log.Slogger.Infof("download code to %s", d.tempdir)
 	return nil
 }

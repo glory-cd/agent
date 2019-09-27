@@ -13,7 +13,7 @@ type FileHandler interface {
 	SetClient(*Client)
 }
 
-//src is file absolute path, path is a path
+//src is file absolute path, path is a path without filename
 func Upload(fs *common.StoreServer, src, path string) error {
 	return (&Client{
 		Src:          src,
@@ -27,7 +27,7 @@ func Upload(fs *common.StoreServer, src, path string) error {
 	}).Upload()
 }
 
-//path is file absolute path
+//path is a path with filename
 func Get(fs *common.StoreServer, path string) (string, error) {
 	return (&Client{
 		Addr:         fs.Addr,

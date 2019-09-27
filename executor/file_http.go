@@ -115,6 +115,7 @@ func (hu *HttpFileHandler) Get() (string, error){
 		return "", errors.WithStack(NewPathError("/tmp/http_", err.Error()))
 	}
 	//从url获取代码
+	log.Slogger.Debugf("download from %s", hu.newPostUrl())
 	err = afis.DownloadCode(tmpdir, hu.newPostUrl())
 	if err != nil {
 		return "", errors.WithStack(NewGetCodeError(hu.newPostUrl(), err.Error()))

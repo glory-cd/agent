@@ -159,11 +159,15 @@ func (u *Upgrade) createTempDir() error {
 func (u *Upgrade) getCode() error {
 	//从url获取代码
 	log.Slogger.Debugf("download code from url: %s", u.RemoteCode)
-	err := afis.DownloadCode(u.tmpdir, u.RemoteCode)
+	//err := afis.DownloadCode(u.tmpdir, u.RemoteCode)
+	fileServer := common.Config().FileServer
+	dir, err := Get(fileServer, u.RemoteCode)
 	if err != nil {
 		return errors.WithStack(NewGetCodeError(u.RemoteCode, err.Error()))
 	}
+	u.tmpdir = dir
 	log.Slogger.Infof("download code to %s", u.tmpdir)
+
 	return nil
 }
 
@@ -209,7 +213,7 @@ func (u *Upgrade) classifyPattern() (patterndirs, patternfiles, patterns []map[s
 	var pfiles []map[string]string
 	var ppatterns []map[string]string
 	var executePattern []string
-	log.Slogger.Debugf("custom:%+v, %d", u.CustomPattern, len(u.CustomPattern))
+	log.Slogger.Debugf("CustomPattern:%+v, %d", u.CustomPattern, len(u.CustomPattern))
 	if u.CustomPattern != nil && len(u.CustomPattern) != 0 {
 		executePattern = u.CustomPattern
 	} else {

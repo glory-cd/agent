@@ -55,6 +55,7 @@ func (d *driver) readServiceVerion() (string, error) {
 	return strings.TrimSpace(string(path)), nil
 }
 
+//gets the execution path of the CMD
 func (d *driver) getBinPath(cmd string) (string, error) {
 	var cmdpath string
 
