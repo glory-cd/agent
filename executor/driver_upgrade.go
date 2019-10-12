@@ -162,21 +162,21 @@ func (u *Upgrade) upgrade() error {
 	log.Slogger.Debugw("The paths need to be precessed:", "patterndirs", patterndirs,
 		"patternfiles", patternfiles, "patterns", patterns)
 
-	//目录处理
+	//process dirs
 	if patterndirs != nil {
 		err := u.dealPatternDirs(patterndirs)
 		if err != nil {
 			return err
 		}
 	}
-	//文件处理
+	//process files
 	if patternfiles != nil {
 		err := u.dealPatternFiles(patternfiles)
 		if err != nil {
 			return err
 		}
 	}
-	//patterns处理
+	//process patterns
 	if patterns != nil {
 		err := u.dealPatterns(patterns)
 		if err != nil {
@@ -184,8 +184,14 @@ func (u *Upgrade) upgrade() error {
 		}
 	}
 
-	//更改整个文件夹的属主
+	//change the owner of the entire folder
 	err := afis.ChownDirR(u.Dir, u.OsUser)
+	if err != nil {
+		return errors.WithStack(NewPathError(u.Dir, err.Error()))
+	}
+
+	//change permissions for the entire folder
+	err = afis.ChmodDirR(u.Dir, 0755)
 	if err != nil {
 		return errors.WithStack(NewPathError(u.Dir, err.Error()))
 	}

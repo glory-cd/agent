@@ -122,7 +122,7 @@ func (d *Deploy) deploy() error {
 		)
 	}
 	log.Slogger.Infof("copy code from %s to %s successfully.", src, d.Dir)
-	//更改整个文件夹的属主
+	//change the owner of the entire folder
 	err = afis.ChownDirR(d.Dir, d.OsUser)
 	if err != nil {
 		return errors.Wrap(
@@ -134,7 +134,7 @@ func (d *Deploy) deploy() error {
 			"deploy.deploy.afis.ChownDirR",
 		)
 	}
-	//更改整个文件夹的权限
+	//change permissions for the entire folder
 	err = afis.ChmodDirR(d.Dir, 0755)
 	if err != nil {
 		return errors.Wrap(
