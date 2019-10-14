@@ -22,6 +22,7 @@ func dealReceiveInstruction(ins string) {
 		log.Slogger.Errorf("ConvertInsJsonTOTaskObject Err:[%s]", err.Error())
 		return
 	}
+	log.Slogger.Debugf("Recived Instruction task: %+v, service: %+v", *insExecutor.Task, *insExecutor.Service)
 	//执行
 	result := insExecutor.Execute()
 

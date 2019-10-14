@@ -84,8 +84,8 @@ github.com/garyburd/redigo v1.6.0/go.mod h1:NR3MbYisc3/PwhQ00EMzDiPmrwpPxAn5GI05
 github.com/ghodss/yaml v1.0.0 h1:wQHKEahhL6wmXdzwWG11gIVCkOv05bNOh+Rxn0yngAk=
 github.com/ghodss/yaml v1.0.0/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
 github.com/gliderlabs/ssh v0.1.1/go.mod h1:U7qILu1NlMHj9FlMhZLlkCdDnU1DBEAqr0aevW3Awn0=
-github.com/glory-cd/utils v0.0.0-20190918013744-736ed1a53da9 h1:ZaM2nxLddD1kc6B8QAYyc8T/Zxpe8nKANfC97h3X0IU=
-github.com/glory-cd/utils v0.0.0-20190918013744-736ed1a53da9/go.mod h1:XJYdvZvgwfYhmlJ5GpG/3GI9zxVShfYqc1bqRz7ZHx0=
+github.com/glory-cd/utils v0.0.0-20191012095156-15da1e094b9f h1:7bxGC5h6I46n612KBgE5M+7lQQ6bmnAM4hI/FWBLy2Q=
+github.com/glory-cd/utils v0.0.0-20191012095156-15da1e094b9f/go.mod h1:XJYdvZvgwfYhmlJ5GpG/3GI9zxVShfYqc1bqRz7ZHx0=
 github.com/go-kit/kit v0.8.0/go.mod h1:xBxKIO96dXMWWy0MnWVtmwkA9/13aqxPnvrjFYMA2as=
 github.com/go-logfmt/logfmt v0.3.0/go.mod h1:Qt1PoO58o5twSAckw1HlFXLmHsOX5/0LbT9GBnD5lWE=
 github.com/go-ole/go-ole v1.2.4 h1:nNBDSCOigTSiarFpYE9J/KtEA1IOW4CNeqT9TQDqCxI=

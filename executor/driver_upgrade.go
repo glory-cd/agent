@@ -21,9 +21,10 @@ import (
 
 type Upgrade struct {
 	driver
-	rs       Result
-	tmpdir   string
-	backfile string
+	rs             Result
+	tmpdir         string
+	backfile       string
+	executepattern []string
 }
 
 func (u *Upgrade) Exec(out chan<- Result) {
@@ -32,7 +33,7 @@ func (u *Upgrade) Exec(out chan<- Result) {
 	var err error
 	defer u.deferHandleFunc(&err, out)
 
-	//执行备份
+	//backup and upload
 	err = u.backup()
 	if err != nil {
 		u.rs.AppendFailedStep(stepNameBackup, err)
@@ -40,13 +41,13 @@ func (u *Upgrade) Exec(out chan<- Result) {
 	}
 	u.rs.AppendSuccessStep(stepNameBackup)
 
-	//创建临时代码目录
+	//create temp dir to store code
 	err = u.createTempDir()
 	if err != nil {
 		u.rs.AppendFailedStep(stepNameGetCode, err)
 		return
 	}
-	//下载代码
+	//download code
 	codedir, err := u.getCode()
 	if err != nil {
 		u.rs.AppendFailedStep(stepNameGetCode, err)
@@ -55,7 +56,7 @@ func (u *Upgrade) Exec(out chan<- Result) {
 	u.tmpdir = codedir
 	u.rs.AppendSuccessStep(stepNameGetCode)
 
-	//检查代码以及service
+	//verify code and service
 	err = u.checkenv()
 	if err != nil {
 		u.rs.AppendFailedStep(stepNameCheckEnv, err)
@@ -63,7 +64,7 @@ func (u *Upgrade) Exec(out chan<- Result) {
 	}
 	u.rs.AppendSuccessStep(stepNameCheckEnv)
 
-	//执行升级
+	//perform an upgrade
 	err = u.upgrade()
 	if err != nil {
 		u.rs.AppendFailedStep(stepNameUpgrade, err)
@@ -77,11 +78,11 @@ func (u *Upgrade) deferHandleFunc(err *error, out chan<- Result) {
 	if *err != nil {
 		u.rs.ReturnCode = common.ReturnCodeFailed
 		u.rs.ReturnMsg = (*err).Error()
-		//断言err的接口类型为CoulsonError
+		//assert the interface type(CoulsonError)
 		if ce, ok := errors.Cause(*err).(CoulsonError); ok {
 			log.Slogger.Errorf("encounter an error:%+v, the kv is: %s", *err, ce.Kv())
 
-			//如果dealPatternDirs和dealPatternFiles失败，则执行回滚
+			//rollback if dealPatternDirs or dealPatternFiles fails
 			if _, ok := ce.(*dealPatternError); ok {
 				err1 := u.rollBack()
 				if err1 != nil {
@@ -93,7 +94,7 @@ func (u *Upgrade) deferHandleFunc(err *error, out chan<- Result) {
 		}
 	}
 
-	//清理临时目录
+	//Clean temporary directory
 	if afis.IsExists(u.tmpdir) {
 		log.Slogger.Infof("clean temp dir %s.", u.tmpdir)
 		err2 := os.RemoveAll(u.tmpdir)
@@ -101,25 +102,36 @@ func (u *Upgrade) deferHandleFunc(err *error, out chan<- Result) {
 			log.Slogger.Errorf("remove dir faild: %s.", err2.Error())
 		}
 	}
-	//结果写入chanel
+	//send result to chanel
 	out <- u.rs
 	log.Slogger.Infof("退出goroutine.")
 }
 
-//检查环境
+//check && verify
 func (u *Upgrade) checkenv() error {
-	var executePattern []string
-	if u.CustomPattern != nil {
-		executePattern = u.CustomPattern
-	} else {
-		executePattern = u.CodePattern
+
+	log.Slogger.Debugf("CustomPattern and CodePattern:%+v, %d, %+v, %d", u.CustomPattern, len(u.CustomPattern), u.CodePattern, len(u.CodePattern))
+
+	if afis.ContainsString(u.CodePattern, "") || afis.ContainsString(u.CustomPattern, "") {
+		log.Slogger.Errorf("Pattern has empty string.")
+		return errors.New("pattern has empty string")
 	}
-	//检查部署路径是否已存在，若不存在则返回错误
+
+	if u.CustomPattern != nil {
+		u.executepattern = u.CustomPattern
+	} else {
+		u.executepattern = u.CodePattern
+	}
+
+	if u.executepattern == nil {
+		return errors.New("pattern is nil")
+	}
+	//Check if the deployment path already exists
 	if !afis.IsExists(u.Dir) {
 		return errors.WithStack(NewPathError(u.Dir, "program is not exist"))
 	}
-	//检查部署目录中CodePattern的路径是否存在, 如果不存在则仅记录异常
-	for _, dcp := range executePattern {
+	//Check if the corresponding path of CodePattern exists in the deployment directory
+	for _, dcp := range u.executepattern {
 		codepath := path.Join(u.Dir, dcp)
 		if strings.ContainsAny(codepath, "*?[]") {
 			codepath = filepath.Dir(codepath)
@@ -130,8 +142,9 @@ func (u *Upgrade) checkenv() error {
 
 	}
 
-	//检查临时代码目录中CodePattern的路径是否存在，如果不存在则返回*pathError
-	for _, tcp := range executePattern {
+	// Check if the corresponding path of CodePattern exists in the temporary code directory.
+	// return *pathError if not
+	for _, tcp := range u.executepattern {
 		tcodepath := path.Join(u.tmpdir, u.ModuleName, tcp)
 		if strings.ContainsAny(tcodepath, "*?[]") {
 			tcodepath = filepath.Dir(tcodepath)
@@ -158,7 +171,7 @@ func (u *Upgrade) createTempDir() error {
 }
 
 func (u *Upgrade) upgrade() error {
-	patterndirs, patternfiles, patterns := u.classifyPattern() //将Pattern分类
+	patterndirs, patternfiles, patterns := u.classifyPattern()
 	log.Slogger.Debugw("The paths need to be precessed:", "patterndirs", patterndirs,
 		"patternfiles", patternfiles, "patterns", patterns)
 
@@ -199,21 +212,16 @@ func (u *Upgrade) upgrade() error {
 	return nil
 }
 
-//将CodePattern按具体目录、具体文件、Pattern进行分类
+//CodePattern was classified according to directories, files and Patterns
 func (u *Upgrade) classifyPattern() (patterndirs, patternfiles, patterns []map[string]string) {
 	var pdirs []map[string]string
 	var pfiles []map[string]string
 	var ppatterns []map[string]string
-	var executePattern []string
-	log.Slogger.Debugf("CustomPattern:%+v, %d", u.CustomPattern, len(u.CustomPattern))
-	if u.CustomPattern != nil && len(u.CustomPattern) != 0 {
-		executePattern = u.CustomPattern
-	} else {
-		executePattern = u.CodePattern
-	}
-	for _, cp := range executePattern {
+
+	log.Slogger.Debugf("ExecutePattern:%+v", u.executepattern)
+	for _, cp := range u.executepattern {
 		codepath := path.Join(u.Dir, cp)
-		//将pattern绝对路径和相对路径都装入map
+		//Load both the pattern absolute path and the relative path into the map
 		dm := make(map[string]string)
 		dm["codepattern"] = cp
 		dm["codepath"] = codepath
@@ -226,128 +234,73 @@ func (u *Upgrade) classifyPattern() (patterndirs, patternfiles, patterns []map[s
 			pfiles = append(pfiles, dm)
 			continue
 		}
-		//对于既不是目录也不是文件（真正的pattern）的路径装入ppatterns
+		//load the path that is neither a directory nor a file (real pattern) into the ppatterns
 		ppatterns = append(ppatterns, dm)
 	}
 	return pdirs, pfiles, ppatterns
 }
 
-//处理patterns中的目录
+//Process directories in patterns
 func (u *Upgrade) dealPatternDirs(pdirs []map[string]string) error {
 	for _, pd := range pdirs {
-		//如果要删除内容的目录属主与服务所在用户不同则直接返回*depErrors
+		//Check if the owner matches
 		if !afis.CheckFileOwner(pd["codepath"], u.OsUser) {
-			return errors.WithStack(
-				NewFileOwnerError(pd["codepath"],
-					u.OsUser,
-					"file and owner does not match"))
+			return errors.WithStack(NewFileOwnerError(pd["codepath"], u.OsUser, "file and owner does not match"))
 		}
 		err := afis.RemoveContents(pd["codepath"])
 		if err != nil {
-			return errors.Wrap(
-				NewdealPatternError(
-					u.OsUser,
-					"",
-					pd["codepath"],
-					err.Error(),
-				),
-				"upgrade.dealPatternDirs.afis.RemoveContents",
-			)
+			return errors.WithStack(NewdealPatternError(u.OsUser, "", pd["codepath"], err.Error()))
 		}
-		//目录内容copy
+		//copy direactory
 		src := filepath.Join(u.tmpdir, u.ModuleName, pd["codepattern"])
 		err = afis.CopyDir(src, pd["codepath"])
 		if err != nil {
-			return errors.Wrap(
-				NewdealPatternError(
-					u.OsUser,
-					src,
-					pd["codepath"],
-					err.Error(),
-				),
-				"upgrade.dealPatternDirs.afis.CopyDir",
-			)
+			return errors.WithStack(NewdealPatternError(u.OsUser, src, pd["codepath"], err.Error()))
 		}
 	}
 	return nil
 }
 
-//处理patterns中的文件
+//Process files in patterns
 func (u *Upgrade) dealPatternFiles(pfiles []map[string]string) error {
 	for _, pf := range pfiles {
-		//如果要删除的文件属主与服务所在用户不同则直接返回×depErrors
+		//Check if the owner matches
 		if !afis.CheckFileOwner(pf["codepath"], u.OsUser) {
-			return errors.WithStack(
-				NewFileOwnerError(pf["codepath"],
-					u.OsUser,
-					"file and owner does not match"))
+			return errors.WithStack(NewFileOwnerError(pf["codepath"], u.OsUser, "file and owner does not match"))
 		}
 		err := os.Remove(pf["codepath"])
 		if err != nil {
-			return errors.Wrap(
-				NewdealPatternError(
-					u.OsUser,
-					"",
-					pf["codepath"],
-					err.Error(),
-				),
-				"upgrade.dealPatternFiles.os.Remove",
-			)
+			return errors.WithStack(NewdealPatternError(u.OsUser, "", pf["codepath"], err.Error()))
 		}
-		//文件copy
+		//copy file
 		src := filepath.Join(u.tmpdir, u.ModuleName, pf["codepattern"])
 		err = afis.CopyFile(src, pf["codepath"])
 		if err != nil {
-			return errors.Wrap(
-				NewdealPatternError(
-					u.OsUser,
-					src,
-					pf["codepath"],
-					err.Error(),
-				),
-				"upgrade.dealPatternFiles.afis.CopyFile",
-			)
+			return errors.WithStack(NewdealPatternError(u.OsUser, src, pf["codepath"], err.Error()))
 		}
 	}
 	return nil
 }
 
-//处理patterns中的pattern
+//Process patterns
 func (u *Upgrade) dealPatterns(ppatterns []map[string]string) error {
 	var pdirs []map[string]string
 	var pfiles []map[string]string
 	for _, pp := range ppatterns {
 		basedir := filepath.Dir(pp["codepath"])
-		//以pattern的基目录为起点进行一级目录遍历，将遍历的内容安文件和目录分别进行处理
+		//just walk current pattern's root dir for once, and process according to file and directory
 		err := afis.WalkOnce(basedir, func(path string, info os.FileInfo, err1 error) error {
 			if err1 != nil {
-				return errors.Wrap(
-					NewdealPatternError(
-						u.OsUser,
-						"",
-						basedir,
-						err1.Error(),
-					),
-					"upgrade.dealPatterns.afis.WalkOnce",
-				)
+				return errors.WithStack(NewdealPatternError(u.OsUser, "", basedir, err1.Error()))
 			}
-			//将遍历到的路径与pattern进行匹配
+			//Check whether the path matches the pattern
 			ism, err2 := filepath.Match(pp["codepath"], path)
 
 			if err2 != nil {
-				return errors.Wrap(
-					NewdealPatternError(
-						u.OsUser,
-						pp["codepath"],
-						path,
-						err2.Error(),
-					),
-					"upgrade.dealPatterns.filepath.Match",
-				)
+				return errors.WithStack(NewdealPatternError(u.OsUser, pp["codepath"], path, err2.Error()))
 			}
-			//如果path匹配到pattern，则将路径按目录和文件分类组合，以备调用不同的处理方法
+			//classify according to directories, files
 			if ism {
-				//组合为具体的目录和文件
 				dm := make(map[string]string)
 				dm["codepattern"] = filepath.Join(filepath.Dir(pp["codepattern"]), filepath.Base(path))
 				dm["codepath"] = path
@@ -370,12 +323,12 @@ func (u *Upgrade) dealPatterns(ppatterns []map[string]string) error {
 	}
 	log.Slogger.Debugw("The paths have been matched:", "dirs", pdirs,
 		"files", pfiles)
-	//处理匹配到的目录
+	//Process the matched directories
 	err := u.dealPatternDirs(pdirs)
 	if err != nil {
 		return err
 	}
-	//处理匹配到的文件
+	//Process the matched files
 	err = u.dealPatternFiles(pfiles)
 	if err != nil {
 		return err
@@ -383,56 +336,55 @@ func (u *Upgrade) dealPatterns(ppatterns []map[string]string) error {
 	return nil
 }
 
-//备份
+//backup and upload
 func (u *Upgrade) backup() error {
-	//构建目标文件和上传路径
+	//build filename
 	filename := filepath.Base(u.Dir) + time.Now().Format("20060102150405.00000") + ".zip"
-
+	//build dst file path
 	dst := filepath.Join(common.TempBackupPath, filename)
-
+	//build upload path
 	upath := filepath.Join(common.AgentID, u.ServiceID)
-	//备份到目标文件
+	//backup and upload
 	err := u.backupService(dst, upath)
 
-	if err != nil{
+	if err != nil {
 		return err
 	}
-	remoteFilePath := filepath.Join(upath, filename) //构建文件服务器上的文件路径
-	versionFile := filepath.Join(u.Dir, common.PathFile)  //构建本地记录文件服务器上备份路径的缓存文件
-	err = ioutil.WriteFile(versionFile, []byte(remoteFilePath), 0644) //将路径写入缓存文件
+	//build filepath with name that reside on file server
+	remoteFilePath := filepath.Join(upath, filename)
+	//local version file which contains remoteFilePath
+	versionFile := filepath.Join(u.Dir, common.PathFile)
+	err = ioutil.WriteFile(versionFile, []byte(remoteFilePath), 0644)
 
 	if err != nil {
 		return errors.WithStack(err)
 	}
-	//更改属主
+	//change owner
 	err = afis.ChownFile(versionFile, u.OsUser)
 
 	if err != nil {
 		return errors.WithStack(err)
 	}
-	//记录临时的备份文件以备发生错误即时回滚
+	//record temporary backup file for rolling back
 	u.backfile = dst
 	return nil
 }
 
-//回滚
+//rollback
 func (u *Upgrade) rollBack() error {
-	//如果要删除的文件属主与服务所在用户不同则直接返回*depErrors
+	//Check if the owner matches
 	if !afis.CheckFileOwner(u.Dir, u.OsUser) {
-		return errors.WithStack(
-			NewFileOwnerError(u.Dir,
-				u.OsUser,
-				"file and owner does not match"))
+		return errors.WithStack(NewFileOwnerError(u.Dir, u.OsUser, "file and owner does not match"))
 	}
 	err := os.RemoveAll(u.Dir)
 	if err != nil {
-		return errors.Wrap(err, "upgrade.rollBack.RemoveAll")
+		return errors.WithStack(err)
 	}
-	//解压临时备份文件至dir
+	//unzip temporary backup file to basedir
 	basedir := filepath.Dir(u.Dir)
 	err = afis.Unzip(u.backfile, basedir)
 	if err != nil {
-		return errors.Wrap(err, "upgrade.rollBack.afis.Unzip")
+		return err
 	}
 	err = afis.ChownDirR(u.Dir, u.OsUser)
 	if err != nil {

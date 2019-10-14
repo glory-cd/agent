@@ -61,7 +61,7 @@ github.com/coreos/etcd/pkg/types
 # github.com/garyburd/redigo v1.6.0
 github.com/garyburd/redigo/internal
 github.com/garyburd/redigo/redis
-# github.com/glory-cd/utils v0.0.0-20190918013744-736ed1a53da9
+# github.com/glory-cd/utils v0.0.0-20191012095156-15da1e094b9f
 github.com/glory-cd/utils/afis
 github.com/glory-cd/utils/etcd
 github.com/glory-cd/utils/log
