@@ -14,7 +14,7 @@ import (
 	"strings"
 )
 
-//处理接收到的指令
+//Process received instructions
 func dealReceiveInstruction(ins string) {
 	var insExecutor executor.Executor
 	err := json.Unmarshal([]byte(ins), &insExecutor)
@@ -23,13 +23,13 @@ func dealReceiveInstruction(ins string) {
 		return
 	}
 	log.Slogger.Debugf("Recived Instruction task: %+v, service: %+v", *insExecutor.Task, *insExecutor.Service)
-	//执行
+	//Execute
 	result := insExecutor.Execute()
 
 	publishResult(insExecutor.TaskID, result)
 }
 
-//向redis推送结果
+//Push the results to redis
 func publishResult(taskid int, re string) {
 
 	log.Slogger.Infof("push result to redis : %s", re)

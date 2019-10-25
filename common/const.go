@@ -31,4 +31,5 @@ const (
 	UUIDFile string = "/etc/agent/uuid"
 	PathFile string = ".version"
 	TempBackupPath string = "/tmp/backup"
+	RegisterScript string = "meta.sh"
 )

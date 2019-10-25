@@ -19,13 +19,13 @@ type Task struct {
 	OP            common.OpMode `json:"serviceop"`
 	CustomPattern []string      `json:"servicecustompattern"`
 	RemoteCode    string        `json:"serviceremotecode"`
+	UserPass      string        `json:"serviceosuserpass"`
 }
 
 //服务
 type Service struct {
 	ServiceID   string   `json:"serviceid"`
 	OsUser      string   `json:"serviceosuser"`
-	UserPass    string   `json:"serviceosuserpass"`
 	Dir         string   `json:"servicedir"`
 	ModuleName  string   `json:"servicemodulename"`
 	CodePattern []string `json:"servicecodepattern"`
@@ -38,4 +38,17 @@ type Service struct {
 type Executor struct {
 	*Task
 	*Service
+}
+
+type User struct{
+	// Uid is the user ID.
+	Uid int
+	// Gid is the primary group ID.
+	Gid int
+	// Username is the login name.
+	Username string
+	// Name is the user's real or display name.
+	Name string
+	// HomeDir is the path to the user's home directory (if they have one).
+	HomeDir string
 }

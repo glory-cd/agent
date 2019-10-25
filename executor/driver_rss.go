@@ -7,15 +7,17 @@
 package executor
 
 import (
-	"bytes"
 	"github.com/glory-cd/agent/common"
+	"github.com/glory-cd/utils/afis"
 	"github.com/glory-cd/utils/log"
 	"github.com/pkg/errors"
+	"io"
 	"os"
 	"os/exec"
 	"os/user"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"syscall"
 )
 
@@ -25,7 +27,7 @@ type Rss struct {
 }
 
 func (r *Rss) deferHandleFunc(err *error, out chan<- Result) {
-	//断言err的接口类型为CoulsonError
+	//assert that the interface type of err is CoulsonError
 	if *err != nil {
 		r.rs.ReturnCode = common.ReturnCodeFailed
 		r.rs.ReturnMsg = (*err).Error()
@@ -35,9 +37,9 @@ func (r *Rss) deferHandleFunc(err *error, out chan<- Result) {
 			log.Slogger.Errorf("encounter an error:%+v.", *err)
 		}
 	}
-	//结果写入chanel
+	//write the result to chanel
 	out <- r.rs
-	log.Slogger.Infof("退出goroutine.")
+	log.Slogger.Infof("Exit goroutine.")
 }
 
 func (r *Rss) Exec(out chan<- Result) {
@@ -52,7 +54,7 @@ func (r *Rss) Exec(out chan<- Result) {
 	case common.OperateRES:
 		operateString = "RESTART"
 	}
-	log.Slogger.Infof("开始[%s]服务：%s,%s", operateString, r.ServiceID, r.Dir)
+	log.Slogger.Infof("Begin to [%s] service：%s,%s", operateString, r.ServiceID, r.Dir)
 
 	var err error
 	defer r.deferHandleFunc(&err, out)
@@ -88,16 +90,28 @@ func (r *Rss) Exec(out chan<- Result) {
 	}
 }
 
-//启动程序
+//start the program
 func (r *Rss) start() error {
+	//run the startup command
 	err := r.runCMD(r.StartCMD)
 	if err != nil {
 		return err
 	}
+	//achieve the path of register script
+	cmdMetaScript, err := r.getMetaScriptPath()
+	if err != nil {
+		return err
+	}
+	//Run the registration script
+	err = r.runCMD(cmdMetaScript)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
-//关闭程序
+//shutdown the program
 func (r *Rss) shutdown() error {
 	err := r.runCMD(r.StopCMD)
 	if err != nil {
@@ -106,39 +120,108 @@ func (r *Rss) shutdown() error {
 	return nil
 }
 
-//执行CMD
+//get the meta script path which will be executed
+//first, walk the base dir of the service, and just traverse the first level directory
+//If you have a "bin" directory, use the script under there, otherwise use script under base directory
+func (r *Rss) getMetaScriptPath() (string, error) {
+	var cmdMetaScript = filepath.Join(r.Dir, common.RegisterScript)
+	toFindDir := "bin"
+	err := afis.WalkOnce(r.Dir, func(path string, info os.FileInfo, err error) error {
+
+		if err != nil {
+			return err
+		}
+		log.Slogger.Debugf("walk path: %s, info name: %s", path, info.Name())
+
+		if info.IsDir() && info.Name() == toFindDir {
+			cmdMetaScript = filepath.Join(path, common.RegisterScript)
+			return io.EOF
+		}
+
+		return nil
+
+	})
+
+	if errors.Cause(err) == io.EOF {
+		err = nil
+	}
+
+	if err != nil {
+		return "", err
+	}
+	log.Slogger.Debugf("the meta script is: %s", cmdMetaScript)
+
+	if !afis.IsFile(cmdMetaScript) {
+		return "", errors.WithStack(NewPathError(cmdMetaScript, "no meta script"))
+	}
+	return cmdMetaScript, nil
+}
+
+//run the command
 func (r *Rss) runCMD(cmdString string) error {
-	//构造执行文件的bin路径
+
+	// changes the current working directory to bin directory
+	// for afis programe which can't be executed witch absolute path
 	binPath := filepath.Join(r.Dir, "/bin")
 	err := os.Chdir(binPath)
 	if err != nil {
 		return errors.WithStack(NewPathError(binPath, err.Error()))
 
 	}
-	//检查执行路径是否存在
 	_, err = exec.LookPath(cmdString)
 	if err != nil {
 		return errors.WithStack(NewPathError(cmdString, err.Error()))
 	}
-	cmd := exec.Command(cmdString)
-	//切换用户
-	suser, _ := user.Lookup(r.OsUser)
-	uid, _ := strconv.Atoi(suser.Uid)
-	gid, _ := strconv.Atoi(suser.Gid)
-	cmd.SysProcAttr = &syscall.SysProcAttr{}
-	cmd.SysProcAttr.Credential = &syscall.Credential{Uid: uint32(uid), Gid: uint32(gid)}
-	//改变Env
-	cmd.Env = append(os.Environ(), "HOME="+suser.HomeDir, "USER="+suser.Username)
-	//处理stdout和stderr
-	var stdout, stderr bytes.Buffer
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-	//执行
-	err = cmd.Run()
-	outStr, errStr := string(stdout.Bytes()), string(stderr.Bytes())
+
+	cmdSlice := strings.Fields(strings.TrimSpace(cmdString))
+
+	log.Slogger.Debugf("The cmdSlice is:%+v", cmdSlice)
+
+	cmd := exec.Command(cmdSlice[0], cmdSlice[1:]...)
+
+	userInfo, err := r.getUserInfo()
 	if err != nil {
-		return errors.WithStack(NewCmdError(cmdString, errStr))
+		return err
 	}
-	log.Slogger.Infof("stdout:\n%s", outStr)
+
+	//switch os user
+	cmd.SysProcAttr = &syscall.SysProcAttr{}
+	cmd.SysProcAttr.Credential = &syscall.Credential{Uid: uint32(userInfo.Uid), Gid: uint32(userInfo.Gid)}
+	//append some environment variables
+	cmd.Env = append(os.Environ(), "HOME="+userInfo.HomeDir, "USER="+userInfo.Username, "SHELL="+"/bin/bash")
+
+	out, err := cmd.CombinedOutput()
+
+	log.Slogger.Debugf("stdout:\n%s", string(out))
+	if err != nil {
+		return errors.WithStack(NewCmdError(cmdString, err.Error()))
+	}
+
 	return nil
+}
+
+//achieve  userinfo
+func (r *Rss) getUserInfo() (userInfo *User, err error) {
+	suser, err := user.Lookup(r.OsUser)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	uid, err := strconv.Atoi(suser.Uid)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+	gid, err := strconv.Atoi(suser.Gid)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	userInfo = new(User)
+	userInfo.Uid = uid
+	userInfo.Gid = gid
+	userInfo.Name = suser.Name
+	userInfo.Username = suser.Username
+	userInfo.HomeDir = suser.HomeDir
+
+	return
 }
