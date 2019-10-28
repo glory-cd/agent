@@ -42,7 +42,7 @@ func (r *Result) ToJsonString() (string, error) {
 
 }
 
-//构造StepInfo
+// Build StepInfo
 func (r *Result) AppendFailedStep(stepname string, err error) {
 	stepstate := common.ReturnCodeFailed
 	stepmsg := err.Error()

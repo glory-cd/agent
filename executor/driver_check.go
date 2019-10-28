@@ -24,11 +24,11 @@ type Check struct {
 }
 
 func (c *Check) Exec(out chan<- Result) {
-	log.Slogger.Infof("开始[CHECK]服务：%s,%s", c.ServiceID, c.Dir)
+	log.Slogger.Infof("Begin to [CHECK] service：%s,%s", c.ServiceID, c.Dir)
 	var err error
 	defer func() {
 
-		//断言err的接口类型为CoulsonError
+		// Assert that the interface type of err is CoulsonError
 		if err != nil {
 			c.rs.ReturnCode = common.ReturnCodeFailed
 			c.rs.ReturnMsg = err.Error()
@@ -41,27 +41,32 @@ func (c *Check) Exec(out chan<- Result) {
 			}
 		}
 
-		//结果写入chanel
+		// Write the result to chanel
 		out <- c.rs
-		log.Slogger.Infof("退出goroutine.")
+		log.Slogger.Infof("Exit goroutine.")
 	}()
 	pid, err := c.getPid()
 	if err != nil {
-		c.rs.AppendFailedStep(stepNameGetPid, err)
 		return
 	}
 	_, err = c.check(pid)
 	if err != nil {
-		c.rs.AppendFailedStep(stepNameCheck, err)
 		return
 	}
-	c.rs.AppendSuccessStep(stepNameCheck)
 }
 
-//根据pid号检查进程状态
+// Check the process status according to the pid number
 // R: Running S: Sleep T: Stop I: Idle
 // Z: Zombie W: Wait L: Lock
 func (c *Check) check(pid int32) (string, error) {
+	var err error
+	defer func() {
+		if err != nil {
+			c.rs.AppendFailedStep(stepNameCheck, err)
+		} else {
+			c.rs.AppendSuccessStep(stepNameCheck)
+		}
+	}()
 	p, err := process.NewProcess(pid)
 	if err != nil {
 		err = errors.WithStack(err)
@@ -76,36 +81,47 @@ func (c *Check) check(pid int32) (string, error) {
 	return stat, nil
 }
 
-//读取pid文件,获得pid
-func (c *Check) getPid() (pid int32, e error) {
-	if !afis.IsFile(c.PidFile) {
-		e = errors.WithStack(NewPathError(c.PidFile, "Check PidFile Faild"))
-		return
+// Read the pid file to get the pid
+func (c *Check) getPid() (int32, error) {
+
+	var err error
+
+	// Open file
+	pidFile, err := os.Open(c.PidFile)
+	if err != nil {
+		err = errors.WithStack(err)
+		return 0, err
 	}
-	//打开文件
-	pidFile, e := os.Open(c.PidFile)
-	if e != nil {
-		e = errors.WithStack(e)
-		return
-	}
-	//延迟关闭文件描述符
+
 	defer func() {
+		if err != nil {
+			c.rs.AppendFailedStep(stepNameGetPid, err)
+		} else {
+			c.rs.AppendSuccessStep(stepNameGetPid)
+		}
+
 		if err := pidFile.Close(); err != nil{
 			log.Slogger.Errorf("*File Close Error: %s, File: %s", err.Error(), pidFile.Name())
 		}
 	}()
-	//读取
-	content, e := ioutil.ReadAll(pidFile)
-	if e != nil {
-		e = errors.WithStack(e)
-		return
+
+	if !afis.IsFile(c.PidFile) {
+		err = errors.WithStack(NewPathError(c.PidFile, "Check PidFile Faild"))
+		return 0, err
 	}
 
-	pidInt, e := strconv.Atoi(strings.TrimSpace(string(content)))
-	if e != nil {
-		e = errors.WithStack(e)
-		return
+	// Read
+	content, err := ioutil.ReadAll(pidFile)
+	if err != nil {
+		err = errors.WithStack(err)
+		return 0, err
 	}
-	pid = int32(pidInt)
+
+	pidInt, err := strconv.Atoi(strings.TrimSpace(string(content)))
+	if err != nil {
+		err = errors.WithStack(err)
+		return 0, err
+	}
+	pid := int32(pidInt)
 	return pid, nil
 }

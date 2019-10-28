@@ -15,12 +15,12 @@ type RedisConfig struct {
 }
 
 type LogConfig struct {
-	LogLevel   string `json:"loglevel"`   // 日志级别
-	Filename   string `json:"filename"`   // 日志文件路径
-	MaxSize    int    `json:"maxsize"`    // 每个日志文件保存的最大尺寸 单位：M
-	MaxBackups int    `json:"maxbackups"` // 日志文件最多保存多少个备份
-	MaxAge     int    `json:"maxage"`     // 文件最多保存多少天
-	Compress   bool   `json:"compress"`   // 是否压缩
+	LogLevel   string `json:"loglevel"`   // log level
+	Filename   string `json:"filename"`   // log file path
+	MaxSize    int    `json:"maxsize"`    // max size：M
+	MaxBackups int    `json:"maxbackups"` // How many backups of log files can be saved at most
+	MaxAge     int    `json:"maxage"`     // How many days should the file be kept
+	Compress   bool   `json:"compress"`   // Whether to enable compression
 }
 
 type Rest struct {
@@ -56,7 +56,7 @@ func Config() *GlobalConfig {
 	return config
 }
 
-//从etcd中服务配置并初始化
+// Get the service configuration from the etcd and initialize it
 func InitConfig() {
 
 	configContent, err := EtcdClient.Get(ConfigKey, false)
@@ -84,7 +84,7 @@ func InitConfig() {
 
 }
 
-//在etcd中创建新的配置
+// Create a new configuration in the etcd
 func NewConfigInEtcd(content *map[string]string) {
 	temp, err := EtcdClient.Get(ConfigTemplate, false)
 

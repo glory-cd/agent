@@ -20,10 +20,10 @@ type Backup struct {
 }
 
 func (b *Backup) Exec(out chan<- Result) {
-	log.Slogger.Infof("开始[BACKUP]服务：%s,%s", b.ServiceID, b.Dir)
+	log.Slogger.Infof("Begin to [BACKUP] service：%s,%s", b.ServiceID, b.Dir)
 	var err error
 	defer func() {
-		//断言err的接口类型为CoulsonError
+		// Assert that the interface type of err is CoulsonError
 		if err != nil {
 			b.rs.ReturnCode = common.ReturnCodeFailed
 			b.rs.ReturnMsg = err.Error()
@@ -35,17 +35,17 @@ func (b *Backup) Exec(out chan<- Result) {
 			}
 		}
 
-		//结果写入chanel
+		// write the result to chanel
 		out <- b.rs
-		log.Slogger.Infof("退出goroutine.")
+		log.Slogger.Infof("Exit goroutine.")
 	}()
 
-	//构建临时目标文件和上传路径
+	// Build temporary target files and upload paths
 	filename := filepath.Base(b.Dir) + time.Now().Format("20060102150405.00000") + ".zip"
 	dst := filepath.Join(common.TempBackupPath, filename)
 
 	upath := filepath.Join(common.AgentID, b.ServiceID)
-	//备份并上传
+	// Backup and upload
 	err = b.backupService(dst, upath)
 
 	if err != nil {

@@ -20,9 +20,9 @@ const (
 type ExecuteReturnCode int32
 
 const (
-	ReturnCodeFailed    ExecuteReturnCode = 0 //执行失败
-	ReturnCodeSuccess   ExecuteReturnCode = 1 //执行成功
-	ReturnCodeException ExecuteReturnCode = 2 //执行异常
+	ReturnCodeFailed    ExecuteReturnCode = 0
+	ReturnCodeSuccess   ExecuteReturnCode = 1
+	ReturnCodeException ExecuteReturnCode = 2
 )
 
 const (

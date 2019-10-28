@@ -17,22 +17,22 @@ type driver struct {
 	*Service
 }
 
-//备份dir到临时文件，并上传至文件服务器
+// Backup service dir to temporary file and upload to file server
 func (d *driver) backupService(tmpdst, uploadpath string) error {
-	//如果tmpdst目录不存在则创建
+	// Create if the tmpdst directory does not exist
 	if !afis.IsExists(filepath.Dir(tmpdst)) {
 		err := os.MkdirAll(filepath.Dir(tmpdst), 0755)
 		if err != nil {
 			return err
 		}
 	}
-	// 压缩文件
+	// Compressed files
 	src := d.Dir
 	err := afis.Zipit(src, tmpdst, "*.log")
 	if err != nil {
 		return errors.WithStack(err)
 	}
-	//上传到文件服务器
+	// Upload to the file server
 	fileServer := common.Config().FileServer
 	err = Upload(
 		fileServer,
@@ -45,7 +45,7 @@ func (d *driver) backupService(tmpdst, uploadpath string) error {
 	return nil
 }
 
-//读取PathFile文件，获取FileServer中的备份路径
+// Read the PathFile file and get the backup path in the FileServer
 func (d *driver) readServiceVerion() (string, error) {
 	versionFile := filepath.Join(d.Dir, common.PathFile)
 	path, err := ioutil.ReadFile(versionFile)
@@ -56,7 +56,7 @@ func (d *driver) readServiceVerion() (string, error) {
 	return strings.TrimSpace(string(path)), nil
 }
 
-//get the execution path of the CMD
+// Get the execution path of command
 func (d *driver) getBinPath(cmd string) (string, error) {
 	var cmdpath string
 
@@ -78,7 +78,7 @@ func (d *driver) getBinPath(cmd string) (string, error) {
 	return cmdpath, nil
 }
 
-//get code from fileserver
+// Download code from FileServer
 func (d *driver) getCode() (string, error) {
 	//download code from url
 	fileServer := common.Config().FileServer

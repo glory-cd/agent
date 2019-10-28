@@ -2,18 +2,18 @@ package executor
 
 import "github.com/glory-cd/agent/common"
 
-//驱动接口
+// Driver interface
 type Drive interface {
 	Exec(out chan<- Result)
 }
 
-//任务标识
+// Task identity
 type Identiy struct {
 	TaskID      int `json:"taskid"`
 	ExecutionID int `json:"executionid"`
 }
 
-//任务
+// Task
 type Task struct {
 	Identiy
 	OP            common.OpMode `json:"serviceop"`
@@ -22,7 +22,7 @@ type Task struct {
 	UserPass      string        `json:"serviceosuserpass"`
 }
 
-//服务
+// Service
 type Service struct {
 	ServiceID   string   `json:"serviceid"`
 	OsUser      string   `json:"serviceosuser"`
@@ -34,7 +34,7 @@ type Service struct {
 	StopCMD     string   `json:"servicestopcmd"`
 }
 
-//执行器
+// Executor
 type Executor struct {
 	*Task
 	*Service

@@ -17,10 +17,10 @@ type Roll struct {
 }
 
 func (r *Roll) Exec(out chan<- Result) {
-	log.Slogger.Infof("开始[ROLLBACK]服务：%s,%s", r.ServiceID, r.Dir)
+	log.Slogger.Infof("Begin to [ROLLBACK] service：%s,%s", r.ServiceID, r.Dir)
 	var err error
 	defer func() {
-		//断言err的接口类型为CoulsonError
+		// Assert that the interface type of err is CoulsonError
 		if err != nil {
 			r.rs.ReturnCode = common.ReturnCodeFailed
 			r.rs.ReturnMsg = err.Error()
@@ -32,9 +32,9 @@ func (r *Roll) Exec(out chan<- Result) {
 			}
 		}
 
-		//结果写入chanel
+		// Write the result to chanel
 		out <- r.rs
-		log.Slogger.Infof("退出goroutine.")
+		log.Slogger.Infof("Exit goroutine.")
 	}()
 
 	err = r.getCode()
@@ -54,9 +54,9 @@ func (r *Roll) Exec(out chan<- Result) {
 	r.rs.AppendSuccessStep(stepNameRoll)
 }
 
-//从文件服务器下载上一个备份副本
+// Download a backup copy from the file server
 func (r *Roll) getCode() error {
-	//获取文件服务器上的备份路径
+	// Get the backup path that on the file server
 	relativePath, err := r.readServiceVerion()
 
 	if err != nil {
@@ -64,7 +64,7 @@ func (r *Roll) getCode() error {
 		return err
 	}
 
-	// 从文件服务器获取代码备份
+	// Get a code backup from the file server
 	fileServer := common.Config().FileServer
 	dir, err := Get(fileServer, relativePath)
 
@@ -78,32 +78,24 @@ func (r *Roll) getCode() error {
 }
 
 func (r *Roll) rollBack() error {
-	//如果要删除的文件属主与服务所在用户不同则直接返回*error
+	//Return error if the file you want to delete belongs to a different user
 	if !afis.CheckFileOwner(r.Dir, r.OsUser) {
-		return errors.WithStack(
-			NewFileOwnerError(r.Dir,
-				r.OsUser,
-				"file and owner does not match"))
+		return errors.WithStack(NewFileOwnerError(r.Dir, r.OsUser, "file and owner does not match"))
 	}
-	//删除service目录下的内容
+	// Delete the contents of the service directory
 	err := os.RemoveAll(r.Dir)
 	if err != nil {
 
 		return errors.WithStack(err)
 	}
-	//组装路径，仅复制代码目录中的内容，不包括代码目录本身
+	// Build the path and copy only the contents of the code directory
+	// not including the code directory itself
 	src := path.Join(r.tmpdir, filepath.Base(r.Dir))
 	err = afis.CopyDir(src, r.Dir)
 	if err != nil {
-		return errors.WithStack(
-			NewDeployError(
-				src,
-				r.Dir,
-				err.Error(),
-			),
-		)
+		return errors.WithStack(NewDeployError(src, r.Dir, err.Error()))
 	}
-	//更改属主
+	// Change the owner
 	err = afis.ChownDirR(r.Dir, r.OsUser)
 	if err != nil {
 		return err

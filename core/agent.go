@@ -28,8 +28,9 @@ func NewAgent() *Agent {
 }
 
 func (a *Agent) SetAgentID(uuidfile string) {
+	// If the file does not exist, the generated uuid is written to the file
 	if !afis.IsExists(uuidfile) {
-		err := afis.WriteUUID2File(uuidfile) //文件不存在，则重新生成uuid写入文件
+		err := afis.WriteUUID2File(uuidfile)
 		if err != nil {
 			log.Fatalf("write uuid to [%s] failed: %+v", uuidfile, errors.WithStack(err))
 		}
@@ -74,7 +75,7 @@ func (a *Agent) SetServicePrefix() {
 }
 
 /*
-	根据serviceid返回服务
+	Returns the service according to serviceid
 */
 func (a *Agent) GetService(serviceid string) executor.Service {
 	var ser executor.Service
@@ -87,7 +88,7 @@ func (a *Agent) GetService(serviceid string) executor.Service {
 	return ser
 }
 
-//返回存在与不存在的服务slice
+// Returns slice with and without a service
 
 func (a *Agent) CheckServiceIsExist(sidlist []string) ([]string, []string) {
 	var existServices, notExistServices []string
@@ -109,7 +110,7 @@ func (a *Agent) CheckServiceIsExist(sidlist []string) ([]string, []string) {
 
 }
 
-// 服务注册时，用于检查该服务是否存在
+// When registering a service, check if the service exists
 func (a *Agent) CheckRegisterIsExist(id string) bool {
 	for _, v := range a.Services {
 		if v.ServiceID == id {
@@ -119,16 +120,17 @@ func (a *Agent) CheckRegisterIsExist(id string) bool {
 	return false
 }
 
-//增加新服务
+// Add new service
 func (a *Agent) AddService(s executor.Service) {
 	a.Services = append(a.Services, s)
 }
 
-//同步服务
+// sync service
 func (a *Agent) SyncService(s executor.Service) {
 	for index, v := range a.Services {
 		if v.ServiceID == s.ServiceID {
-			//先删除再添加，不过slice不适合做删除动作，后续考虑使用container/list
+			// Delete before adding, but slice is not a good choice for deleting.
+			// Consider container/list later
 			a.Services = append(a.Services[:index], a.Services[index+1:]...)
 			a.Services = append(a.Services, s)
 		}

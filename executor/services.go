@@ -11,7 +11,7 @@ import (
 	"github.com/glory-cd/utils/afis"
 )
 
-//从json构建带有ServiceID的Service
+// Build a Service with ServiceID from json string
 func NewServiceFromJson(sjson string) (Service, error) {
 	var s Service
 	err := json.Unmarshal([]byte(sjson), &s)
@@ -22,7 +22,7 @@ func NewServiceFromJson(sjson string) (Service, error) {
 	return s, nil
 }
 
-//将Service转为json字符串
+// convert Service to json string
 func NewJsonFromService(s Service) (string, error) {
 	jsonb, err := json.Marshal(s)
 	sjson := bytes.NewBuffer(jsonb).String()

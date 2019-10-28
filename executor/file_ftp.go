@@ -17,19 +17,19 @@ type FtpFileHandler struct {
 	baseHandler
 }
 
-//初始化连接和登录
+// Initialize the connection and login
 func (fu *FtpFileHandler) conn() (*ftp.ServerConn, error){
-	//连接FTP服务器
+	// Connect to FTP server
 	c, err := ftp.Dial(fu.client.Addr, ftp.DialWithTimeout(5*time.Second))
 
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
-	err = fu.setPass() //解析密码
+	err = fu.setPass() //Parsing the password
 	if err != nil{
 		return nil, err
 	}
-	//登录
+	// Login
 	err = c.Login(fu.client.User, fu.client.Pass)
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -37,15 +37,13 @@ func (fu *FtpFileHandler) conn() (*ftp.ServerConn, error){
 	return c, nil
 }
 
-//上传
+// Upload
 func (fu *FtpFileHandler) Upload() error {
-	//初始化连接
 	c, err := fu.conn()
-
 	if err != nil {
 		return errors.WithStack(err)
 	}
-	//延迟登出和关闭连接，如果发生错误记录日志
+	// Delay logout and close connections
 	defer func() {
 		if err := c.Quit(); err != nil{
 			log.Slogger.Errorf("FTP Quit error: %s", err.Error())
@@ -55,9 +53,9 @@ func (fu *FtpFileHandler) Upload() error {
 		}
 	}()
 
-	//分割路径
+	// split path
 	dirs := strings.Split(strings.Trim(fu.client.RelativePath, "/"), "/")
-	//为每层创建文件夹，并切换当前目录
+	// Create folders for each layer and switch the current directory
 	for _, v := range dirs {
 		err = c.ChangeDir(v)
 		if err != nil {
@@ -71,18 +69,18 @@ func (fu *FtpFileHandler) Upload() error {
 	}
 	log.Slogger.Debugf("current dir : %s", dir)
 
-	//打开文件准备上传
+	// Open the file for upload
 	file, err := os.Open(fu.client.Src)
 	if err != nil {
 		return errors.WithStack(err)
 	}
-	//文件延迟关闭
+	// delay close fd
 	defer func() {
 		if err := file.Close(); err != nil{
 			log.Slogger.Errorf("*File Close Error: %s, File: %s", err.Error(), file.Name())
 		}
 	}()
-	//上传
+	// upload
 	err = c.Stor(filepath.Base(fu.client.Src), file)
 	if err != nil {
 		return errors.WithStack(err)
@@ -92,15 +90,13 @@ func (fu *FtpFileHandler) Upload() error {
 	return nil
 }
 
-//下载
+// Download
 func (fu *FtpFileHandler) Get() (string, error){
-	//初始化连接
 	c, err := fu.conn()
-
 	if err != nil {
 		return "", errors.WithStack(err)
 	}
-	//延迟登出和关闭连接，如果发生错误记录日志
+	// Delay logout and close connections
 	defer func() {
 		if err := c.Quit(); err != nil{
 			log.Slogger.Errorf("FTP Quit error: %s", err.Error())
@@ -110,9 +106,9 @@ func (fu *FtpFileHandler) Get() (string, error){
 		}
 	}()
 
-	begin := time.Now() //计时开始
+	begin := time.Now() //Timing begins
 
-	//创建临时存放文件夹
+	// Create temporary storage folders
 	tmpdir, err := ioutil.TempDir("", "get_")
 	if err != nil {
 		return "", errors.WithStack(NewPathError("/tmp/get_", err.Error()))
@@ -121,7 +117,7 @@ func (fu *FtpFileHandler) Get() (string, error){
 	basedir := filepath.Dir(fu.client.RelativePath)
 
 	downFile := filepath.Base(fu.client.RelativePath)
-	//切换到文件所在目录
+	// Switch to the directory where the file is
 	err = c.ChangeDir(basedir)
 
 	dir, _ := c.CurrentDir()
@@ -137,19 +133,19 @@ func (fu *FtpFileHandler) Get() (string, error){
 	if err != nil {
 		return "", errors.WithStack(err)
 	}
-	//创建目标文件，用于写入
+	// Creates a target file for writing
 	outFile, err := os.Create(filepath.Join(tmpdir, downFile))
 
 	if err != nil {
 		return "", errors.WithStack(err)
 	}
-	//延迟关闭文件描述符
+	// delay close fd
 	defer func() {
 		if err := outFile.Close(); err != nil{
 			log.Slogger.Errorf("*File Close Error: %s, File: %s", err.Error(), outFile.Name())
 		}
 	}()
-	//copy 内容到目标文件
+	// copy
 	_, err = io.Copy(outFile, resp)
 
 	if err != nil {
@@ -158,11 +154,11 @@ func (fu *FtpFileHandler) Get() (string, error){
 
 	log.Slogger.Debugf("download file sucess: %s", filepath.Join(tmpdir, downFile))
 
-	elapsed := time.Since(begin) //计时结束
+	elapsed := time.Since(begin) //End of the timing
 
 	log.Slogger.Infof("download elapsed: ", elapsed)
 
-	//解压下载的文件
+	// Unzip the downloaded file
 	err = afis.Unzip(filepath.Join(tmpdir, downFile), tmpdir)
 
 	if err != nil {

@@ -27,53 +27,53 @@ type HttpFileHandler struct {
 
 func (hu *HttpFileHandler) Upload() error {
 
-	begin := time.Now() //计时开始
-	//设置密码
+	begin := time.Now() //Timing begins
+	// set password
 	err := hu.setPass()
 	if err != nil{
 		return err
 	}
-	//打开文件
+	// open file
 	src := hu.client.Src
 	file, err := os.Open(src)
 	if err != nil {
 		return errors.WithStack(err)
 	}
-	//文件延迟关闭
+	// delay tp close fd
 	defer func() {
 		if err := file.Close(); err != nil{
 			log.Slogger.Errorf("*File Close Error: %s, File: %s", err.Error(), file.Name())
 		}
 	}()
-	//创建multipart.Writer
+	// create multipart.Writer
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
-	//往Writer中写入文件类型的Part头信息
+	// Writes Part header information for the file type to Writer
 	part, err := writer.CreateFormFile("file", filepath.Base(src))
 	if err != nil {
 		return errors.WithStack(err)
 	}
-	//往Writer中写入文件类型的Part的Body信息
+	// Writes Part Body information for the file type to Writer
 	_, err = io.Copy(part, file)
-	//写入结尾符 --boudary--
+	// Write end character --boudary--
 	err = writer.Close()
 	if err != nil {
 		return errors.WithStack(err)
 	}
 
 	log.Slogger.Debugf("upload request url : %s \n", hu.newPostUrl())
-	//创建http请求
+	// Create an HTTP request
 	req, err := http.NewRequest("POST", hu.newPostUrl(), body)
 
 	if err != nil {
 		return errors.WithStack(err)
 	}
-	//设置header， Content-Type为multipart/form-data
+	// Set the content-type of header to multipart/form-data
 	req.Header.Set("Content-Type", writer.FormDataContentType())
 
-	//实例化http client
+	// Instantiate the HTTP client
 	hu.HTTPClient = cleanhttp.DefaultClient()
-	//发起请求
+	// Make an HTTP request
 	resp, err := hu.HTTPClient.Do(req)
 
 	if err != nil {
@@ -94,7 +94,7 @@ func (hu *HttpFileHandler) Upload() error {
 
 	}
 
-	elapsed := time.Since(begin)
+	elapsed := time.Since(begin)//End of the timing
 
 	log.Slogger.Infof("Upload elapsed: ", elapsed)
 
@@ -103,32 +103,32 @@ func (hu *HttpFileHandler) Upload() error {
 
 func (hu *HttpFileHandler) Get() (string, error){
 
-	begin := time.Now() //计时开始
-	//设置密码
+	begin := time.Now() //Timing begins
+	//set password
 	err := hu.setPass()
 	if err != nil{
 		return "", err
 	}
-	//创建临时存放代码目录
+	// Create temporary storage folders
 	tmpdir, err := ioutil.TempDir("", "http_")
 	if err != nil {
 		return "", errors.WithStack(NewPathError("/tmp/http_", err.Error()))
 	}
-	//从url获取代码
+	// Get the code from the url
 	log.Slogger.Debugf("download from %s", hu.newPostUrl())
 	err = afis.DownloadCode(tmpdir, hu.newPostUrl())
 	if err != nil {
 		return "", errors.WithStack(NewGetCodeError(hu.newPostUrl(), err.Error()))
 	}
 
-	elapsed := time.Since(begin) //计时结束
+	elapsed := time.Since(begin) //End of the timing
 
 	log.Slogger.Infof("download elapsed: ", elapsed)
 
 	return tmpdir, nil
 }
 
-//创建url.URL
+//Build url.URL
 func (hu *HttpFileHandler) newPostUrl() string {
 	requestURL := new(url.URL)
 

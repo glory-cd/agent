@@ -4,7 +4,7 @@
 ![LICENSE](https://img.shields.io/badge/license-GPLv3-blue.svg)
 ![LICENSE](https://img.shields.io/badge/license-Anti%20996-blue.svg?style=flat-square)
 
-agent is a part of cdp(a continuous deployment tool), which runs on the machine, manages some services , receives instructions from the server and do some operations with the services, for example: deploy 、update、start、stop、check and so on.
+agent is a part of glory-cd(a continuous deployment tool), which runs on the machine, manages some services , receives instructions from the server and do some operations with the services, for example: deploy 、update、start、stop、check and so on.
 
 # Documentations
 
@@ -61,75 +61,72 @@ Then put  a key named `/agentConfig/template`in etcd:
 }
 
 ```
+> note: The password field in storeserver is base64 encrypted.
 
 ## Running agent
 
 ```shell
-/your/agent/path/agent --etcd 192.168.1.151:2379,192.168.1.152:2379(etcd cluster endpoint)
+/your/agent/path --etcd 192.168.1.151:2379,192.168.1.152:2379(etcd cluster endpoint)
 ```
 
 ## Accept the service registration
 
 `Some scripts need to be called when your service starts,who push the metadata of the service to agent, the agent register it in etcd.`
 
-- env.sh
+`so, you must put the meta.sh to your *bin path*, and modify the first five variables.`
 
-```shell
-#!/bin/bash
-
-export JAVA_HOME=/usr/java/jdk1.8.0_162
-
-export MAIN_SERVER_OBJECT=com.afis.oper.AlarmWechat
-export MAIN_SERVRt_OPTS=" -d64 -server -Xms1024M -Xmx1536M"
-export HFP_SERVER_MODULE='AlarmWechat'
-export HFP_SERVER_HOME=$HOME/$HFP_SERVER_MODULE
-export HFP_SERVER_BIN=$HFP_SERVER_HOME/bin
-export HFP_SERVER_CONFIG=$HFP_SERVER_HOME/config
-export HFP_SERVER_LIB=$HFP_SERVER_HOME/lib
-export HFP_SERVER_LOG=$HFP_SERVER_HOME/logs
-export HFP_SERVER_PID=$HFP_SERVER_BIN/$MAIN_SERVER_OBJECT.pid
-
-CLASSPATH=.:$HFP_SERVER_CONFIG
-cd $HFP_SERVER_LIB
-for  lname in `ls -rt *.jar`
-do
-        CLASSPATH=$CLASSPATH:$HFP_SERVER_LIB"/"$lname
-done
-export CLASSPATH=$CLASSPATH
-
-export CODEPATTERN='"lib", "bin/*.sh"'
-export HFP_SERVER_STARTCMD="./startup.sh"
-export HFP_SERVER_STOPCMD="./shutdown.sh"
-
-cd $HFP_SERVER_HOME/bin 
-. ./meta.sh
-
-curl -i \
--H "Accept: application/json" \
--H "Content-Type:application/json" \
--X POST --data "$(generate_post_data)" "http://127.0.0.1:9527/register" >> $HFP_SERVER_LOG/register.log
-```
 
 - meta.sh
 
 ```shell
+#!/bin/bash
+
+SERVER_PID_NAME=com.afis.oper.AlarmWechat
+SERVER_MODULE='AlarmWechat'
+SERVER_CODEPATTERN='"lib", "bin/*.sh"'
+SERVER_STARTCMD="./startup.sh"
+SERVER_STOPCMD="./shutdown.sh"
+
+
+# get server path
+SCRIPT=$(readlink -f "$0")
+SCRIPTPATH=$(dirname "$SCRIPT")
+BASENAME=$(basename "$SCRIPTPATH")
+
+if [ "$BASENAME" == "bin" ] || [ "$BASENAME" == "BIN" ];then
+  SERVERPATH=$(dirname $SCRIPTPATH)
+else
+  SERVERPATH=$SCRIPTPATH
+fi
+
+SERVER_HOME=$SERVERPATH
+SERVER_LOG=$SERVER_HOME/logs
+SERVER_PID_FILE=$SERVER_HOME/bin/$SERVER_PID_NAME.pid
+
+# build json
 generate_post_data()
 {
   cat <<EOF
 {
     "serviceosuser":"$USER",
-    "servicedir":"$HFP_SERVER_HOME",
-    "servicecodepattern":[$CODEPATTERN],
-    "servicemodulename":"$HFP_SERVER_MODULE",
-    "servicepidfile":"$HFP_SERVER_PID",
-    "servicestartcmd":"$HFP_SERVER_STARTCMD",
-    "servicestopcmd":"$HFP_SERVER_STOPCMD"
+    "servicedir":"$SERVER_HOME",
+    "servicecodepattern":[$SERVER_CODEPATTERN],
+    "servicemodulename":"$SERVER_MODULE",
+    "servicepidfile":"$SERVER_PID_FILE",
+    "servicestartcmd":"$SERVER_STARTCMD",
+    "servicestopcmd":"$SERVER_STOPCMD"
 }
 EOF
 }
+
+# post metadata
+curl -i \
+-H "Accept: application/json" \
+-H "Content-Type:application/json" \
+-X POST --data "$(generate_post_data)" "http://127.0.0.1:9527/register" >> $SERVER_LOG/register.log
 ```
 
-
+> note: readlink and curl are dependent
 
 # Limits
 
@@ -179,11 +176,9 @@ test.zip
 
 - Support for adding folders and files, the `servicecodepattern` field of service in the database must be updated before deployment
 
-- RSS operations depend on the bin directory of deployed service, and the corresponding scripts are there
+- The RSS operation assumes that the script is in bin or base directory.
 
 - The check operation relies on pid files
-
-- You cannot deploy two same services under the same user
 
 # License
 

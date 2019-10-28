@@ -25,29 +25,25 @@ type Deploy struct {
 	tempdir string
 }
 
-//部署执行
 func (d *Deploy) Exec(out chan<- Result) {
-	log.Slogger.Infof("开始部署服务：%s,%s", d.ServiceID, d.Dir)
+	log.Slogger.Infof("Begin to [Deploy] service：%s,%s", d.ServiceID, d.Dir)
 
-	//使用defer + 闭包来处理错误返回以及清理临时代码存放目录
+	// Use the defer + closure to handle error returns and to clean up the temporary code
 	var err error
 	defer d.deferHandleFunc(&err, out)
 
-	//检查环境
 	err = d.checkenv()
 	if err != nil {
-		d.rs.AppendFailedStep(stepNameCheckEnv, err)
 		return
 	}
-	d.rs.AppendSuccessStep(stepNameCheckEnv)
 
-	//初始化用户目录等
+	// Initialize user directory, etc
 	err = d.initenv()
 	if err != nil {
 		return
 	}
 
-	//下载代码
+	// Download the code
 	codedir, err := d.getCode()
 	if err != nil {
 		d.rs.AppendFailedStep(stepNameGetCode, err)
@@ -56,7 +52,7 @@ func (d *Deploy) Exec(out chan<- Result) {
 	d.tempdir = codedir
 	d.rs.AppendSuccessStep(stepNameGetCode)
 
-	//执行部署
+	// Perform the deployment
 	err = d.deploy()
 	if err != nil {
 		d.rs.AppendFailedStep(stepNameDeploy, err)
@@ -67,13 +63,13 @@ func (d *Deploy) Exec(out chan<- Result) {
 }
 
 func (d *Deploy) deferHandleFunc(err *error, out chan<- Result) {
-	//断言err的接口类型为CoulsonError
+	// Assert that the interface type of err is CoulsonError
 	if *err != nil {
 		d.rs.ReturnCode = common.ReturnCodeFailed
 		d.rs.ReturnMsg = (*err).Error()
 		if ce, ok := errors.Cause(*err).(CoulsonError); ok {
 			log.Slogger.Errorf("encounter an error:%+v, the kv is: %s", *err, ce.Kv())
-			//如果deploy失败，则删除创建的服务目录
+			// If deploy fails, delete the created directory
 			if _, ok := ce.(*deployError); ok {
 				err1 := os.RemoveAll(d.Dir)
 				if err1 != nil {
@@ -85,7 +81,7 @@ func (d *Deploy) deferHandleFunc(err *error, out chan<- Result) {
 		}
 	}
 
-	//清理临时目录
+	// Clean temporary directory
 	if afis.IsExists(d.tempdir) {
 		log.Slogger.Infof("clean temp dir %s.", d.tempdir)
 		err2 := os.RemoveAll(d.tempdir)
@@ -93,14 +89,14 @@ func (d *Deploy) deferHandleFunc(err *error, out chan<- Result) {
 			log.Slogger.Errorf("remove dir faild: %s.", err2.Error())
 		}
 	}
-	//结果写入chanel
+	// Write the result to chanel
 	out <- d.rs
-	log.Slogger.Infof("退出goroutine.")
+	log.Slogger.Infof("Exit goroutine.")
 }
 
-//部署
+// Deploy the service
 func (d *Deploy) deploy() error {
-	//创建服务目录
+	// Create the service directory
 	err := os.Mkdir(d.Dir, 0755)
 	if err != nil {
 		return errors.WithStack(NewPathError(d.Dir, err.Error()))
@@ -108,61 +104,53 @@ func (d *Deploy) deploy() error {
 
 	log.Slogger.Infof("create code dir: %s", d.Dir)
 
-	//组装路径，仅复制代码目录中的内容，不包括代码目录本身
+	// Build the path and copy only the contents of the code directory
+	// not including the code directory itself
 	src := path.Join(d.tempdir, d.ModuleName)
 	err = afis.CopyDir(src, d.Dir)
 	if err != nil {
-		return errors.Wrap(
-			NewDeployError(
-				src,
-				d.Dir,
-				err.Error(),
-			),
-			"deploy.deploy.afis.CopyDir",
-		)
+		return errors.WithStack(NewDeployError(src, d.Dir, err.Error()))
 	}
 	log.Slogger.Infof("copy code from %s to %s successfully.", src, d.Dir)
-	//change the owner of the entire folder
+	// Change the owner of the entire folder
 	err = afis.ChownDirR(d.Dir, d.OsUser)
 	if err != nil {
-		return errors.Wrap(
-			NewDeployError(
-				src,
-				d.Dir,
-				err.Error(),
-			),
-			"deploy.deploy.afis.ChownDirR",
-		)
+		return errors.WithStack(NewDeployError(src, d.Dir, err.Error()))
 	}
-	//change permissions for the entire folder
+	// Change permissions for the entire folder
 	err = afis.ChmodDirR(d.Dir, 0755)
 	if err != nil {
-		return errors.Wrap(
-			NewDeployError(
-				src,
-				d.Dir,
-				err.Error(),
-			),
-			"deploy.deploy.afis.ChmodDirR",
-		)
+		return errors.WithStack(NewDeployError(src, d.Dir, err.Error()))
 	}
 	return nil
 }
 
-//检查环境
+// Check the environment
 func (d *Deploy) checkenv() error {
-	//检查用户是否存在
+	// Check if the user exists
 	if afis.IsUser(d.OsUser) {
 		d.isuser = true
 	}
-	//检查部署路径是否已存在，若存在则返回错误
+	// Check if the deployment path already exists and return an error if it does
 	if afis.IsExists(d.Dir) {
-		return errors.WithStack(NewPathError(d.Dir, "deploy path already exist"))
+		err := NewPathError(d.Dir, "deploy path already exist")
+		d.rs.AppendFailedStep(stepNameCheckEnv, err)
+		return errors.WithStack(err)
 	}
+	d.rs.AppendSuccessStep(stepNameCheckEnv)
 	return nil
 }
 
 func (d *Deploy) createUser() error{
+	var err error
+	defer func() {
+		if err != nil {
+			d.rs.AppendFailedStep(stepNameCreateUser, err)
+		} else {
+			d.rs.AppendSuccessStep(stepNameCreateUser)
+		}
+	}()
+
 	cmdText, err := d.getBinPath("useradd")
 	if err != nil {
 		return errors.WithStack(err)
@@ -175,11 +163,10 @@ func (d *Deploy) createUser() error{
 	}
 	options = append(options, d.OsUser)
 	cmd := exec.Command(cmdText, options...)
-	//处理stdout和stderr
+	//Deal with stdout and stderr
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
-	//执行
 	err = cmd.Run()
 	_, errStr := string(stdout.Bytes()), string(stderr.Bytes())
 	if err != nil {
@@ -189,22 +176,20 @@ func (d *Deploy) createUser() error{
 	return nil
 }
 
-//初始化环境
+// Initialization environment
 func (d *Deploy) initenv() error {
-	//若用户不存在则创建用户
+	// Create a user if the user does not exist
 	if !d.isuser {
 		err := d.createUser()
 		if err != nil {
-			d.rs.AppendFailedStep(stepNameCreateUser, err)
 			return err
 		}
-		d.rs.AppendSuccessStep(stepNameCreateUser)
-		log.Slogger.Infof("create user %s success!", d.Service.OsUser)
+		log.Slogger.Infof("create user %s success!", d.OsUser)
 	} else {
-		d.rs.AppendFailedStep(stepNameCreateUser, errors.New("The user already exists"))
+		log.Slogger.Infof("The user %s already exists!", d.OsUser)
 	}
 
-	//创建临时存放代码目录
+	// Create a temporary code directory
 	dir, err := ioutil.TempDir("", "dep_")
 	if err != nil {
 		d.rs.AppendFailedStep(stepNameCreateTmpDir, err)

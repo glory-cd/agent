@@ -22,7 +22,7 @@ type S3FileHandler struct {
 }
 
 func (sss *S3FileHandler) init() error {
-	err := sss.setPass() //解析密码
+	err := sss.setPass() //parsing password
 
 	if err != nil {
 		return errors.WithStack(err)
@@ -85,9 +85,9 @@ func (sss *S3FileHandler) Get() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	begin := time.Now() //计时开始
+	begin := time.Now() //timing begins
 
-	//创建临时存放代码目录
+	// Create temporary storage folders
 	tmpdir, err := ioutil.TempDir("", "s3_")
 	if err != nil {
 		return "", errors.WithStack(NewPathError("/tmp/s3_", err.Error()))
@@ -113,11 +113,11 @@ func (sss *S3FileHandler) Get() (string, error) {
 	if err != nil {
 		return "", errors.WithStack(err)
 	}
-	elapsed := time.Since(begin) //计时结束
+	elapsed := time.Since(begin) //End of the timing
 
 	log.Slogger.Infof("download elapsed: %s, %d bytes", elapsed, n)
 
-	//解压下载的文件
+	// Unzip the downloaded file
 	err = afis.Unzip(filename, tmpdir)
 
 	if err != nil {

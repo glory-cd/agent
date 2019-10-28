@@ -14,39 +14,39 @@ import (
 var CurAgent *Agent
 
 func InitAgent(etc string) {
-	//初始化agent
+	// Initialize agent
 	CurAgent = NewAgent()
 	CurAgent.SetAgentID(common.UUIDFile)
 	CurAgent.SetEtcdKey()
 	CurAgent.SetEtcdVal()
 	CurAgent.SetServicePrefix()
 	CurAgent.SetInstructionChannel()
-	//设置etcd地址
+	// Set the etcd address
 	common.EtcdEndpoint = strings.Split(etc, ",")
-	//设置AgentID
+	// Set the AgentID
 	common.AgentID = CurAgent.AgentID
-	//设置当前agent在etcd中的ConfigKey
+	// Set ConfigKey of the current agent in etcd
 	common.ConfigKey = "/agentConfig/" + common.AgentID
-	//初始化etcd client
+	// Initialize the etcd client
 	common.InitEtcdClient()
-	//初始化配置
+	// Initialize configuration
 	common.InitConfig()
-	//初始化日志
+	// Initialize log
 	common.InitLog()
-	//初始化redis
+	//Initialize redis
 	common.InitRedis()
-	//从etcd中获取属于当前agent的服务
+	// Get the service that belongs to the current agent from the etcd
 	localServices, err := getServicesFromEtcd()
 	if err != nil {
 		log.Slogger.Fatalf("Agent init failed =>getServicesFromEtcd Err:[%s]", err)
 	} else {
-		//在Agent中设置服务
+		// Set services in agent
 		CurAgent.SetServicesStruct(localServices)
 	}
 
 }
 
-//从etcd中获取属于当前agent的服务
+// Get the service that belongs to the current agent from the etcd
 func getServicesFromEtcd() ([]executor.Service, error) {
 	var servicelist []executor.Service
 	servicesSlice, err := common.EtcdClient.GetWithPrefix(CurAgent.ServicePrefix)

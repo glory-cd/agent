@@ -13,7 +13,7 @@ func (u *baseHandler) SetClient(c *Client) { u.client = c }
 
 
 func (u *baseHandler) setPass() error{
-	//base64解密
+	//base64 decode
 	decode, err := base64.StdEncoding.DecodeString(u.client.Pass)
 	if err != nil {
 		return errors.WithStack(err)

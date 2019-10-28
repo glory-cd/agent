@@ -28,12 +28,12 @@ type Upgrade struct {
 }
 
 func (u *Upgrade) Exec(out chan<- Result) {
-	log.Slogger.Infof("开始升级服务：%s,%s", u.ServiceID, u.Dir)
+	log.Slogger.Infof("Begin to [Upgrade] service：%s,%s", u.ServiceID, u.Dir)
 
 	var err error
 	defer u.deferHandleFunc(&err, out)
 
-	//backup and upload
+	// Backup and upload
 	err = u.backup()
 	if err != nil {
 		u.rs.AppendFailedStep(stepNameBackup, err)
@@ -41,13 +41,13 @@ func (u *Upgrade) Exec(out chan<- Result) {
 	}
 	u.rs.AppendSuccessStep(stepNameBackup)
 
-	//create temp dir to store code
+	// Create temp dir to store code
 	err = u.createTempDir()
 	if err != nil {
 		u.rs.AppendFailedStep(stepNameGetCode, err)
 		return
 	}
-	//download code
+	// Download code
 	codedir, err := u.getCode()
 	if err != nil {
 		u.rs.AppendFailedStep(stepNameGetCode, err)
@@ -56,7 +56,7 @@ func (u *Upgrade) Exec(out chan<- Result) {
 	u.tmpdir = codedir
 	u.rs.AppendSuccessStep(stepNameGetCode)
 
-	//verify code and service
+	// Verify code and service
 	err = u.checkenv()
 	if err != nil {
 		u.rs.AppendFailedStep(stepNameCheckEnv, err)
@@ -64,7 +64,7 @@ func (u *Upgrade) Exec(out chan<- Result) {
 	}
 	u.rs.AppendSuccessStep(stepNameCheckEnv)
 
-	//perform an upgrade
+	// Perform an upgrade
 	err = u.upgrade()
 	if err != nil {
 		u.rs.AppendFailedStep(stepNameUpgrade, err)
@@ -78,11 +78,11 @@ func (u *Upgrade) deferHandleFunc(err *error, out chan<- Result) {
 	if *err != nil {
 		u.rs.ReturnCode = common.ReturnCodeFailed
 		u.rs.ReturnMsg = (*err).Error()
-		//assert the interface type(CoulsonError)
+		// Assert the interface type(CoulsonError)
 		if ce, ok := errors.Cause(*err).(CoulsonError); ok {
 			log.Slogger.Errorf("encounter an error:%+v, the kv is: %s", *err, ce.Kv())
 
-			//rollback if dealPatternDirs or dealPatternFiles fails
+			// Rollback if dealPatternDirs or dealPatternFiles fails
 			if _, ok := ce.(*dealPatternError); ok {
 				err1 := u.rollBack()
 				if err1 != nil {
@@ -94,7 +94,7 @@ func (u *Upgrade) deferHandleFunc(err *error, out chan<- Result) {
 		}
 	}
 
-	//Clean temporary directory
+	// Clean temporary directory
 	if afis.IsExists(u.tmpdir) {
 		log.Slogger.Infof("clean temp dir %s.", u.tmpdir)
 		err2 := os.RemoveAll(u.tmpdir)
@@ -102,12 +102,12 @@ func (u *Upgrade) deferHandleFunc(err *error, out chan<- Result) {
 			log.Slogger.Errorf("remove dir faild: %s.", err2.Error())
 		}
 	}
-	//send result to chanel
+	// Write the result to chanel
 	out <- u.rs
 	log.Slogger.Infof("退出goroutine.")
 }
 
-//check && verify
+// Check && Verify
 func (u *Upgrade) checkenv() error {
 
 	log.Slogger.Debugf("CustomPattern and CodePattern:%+v, %d, %+v, %d", u.CustomPattern, len(u.CustomPattern), u.CodePattern, len(u.CodePattern))
@@ -126,11 +126,11 @@ func (u *Upgrade) checkenv() error {
 	if u.executepattern == nil {
 		return errors.New("pattern is nil")
 	}
-	//Check if the deployment path already exists
+	// Check if the deployment path already exists
 	if !afis.IsExists(u.Dir) {
 		return errors.WithStack(NewPathError(u.Dir, "program is not exist"))
 	}
-	//Check if the corresponding path of CodePattern exists in the deployment directory
+	// Check if the corresponding path of CodePattern exists in the deployment directory
 	for _, dcp := range u.executepattern {
 		codepath := path.Join(u.Dir, dcp)
 		if strings.ContainsAny(codepath, "*?[]") {
@@ -175,21 +175,21 @@ func (u *Upgrade) upgrade() error {
 	log.Slogger.Debugw("The paths need to be precessed:", "patterndirs", patterndirs,
 		"patternfiles", patternfiles, "patterns", patterns)
 
-	//process dirs
+	// Process dirs
 	if patterndirs != nil {
 		err := u.dealPatternDirs(patterndirs)
 		if err != nil {
 			return err
 		}
 	}
-	//process files
+	// Process files
 	if patternfiles != nil {
 		err := u.dealPatternFiles(patternfiles)
 		if err != nil {
 			return err
 		}
 	}
-	//process patterns
+	// Process patterns
 	if patterns != nil {
 		err := u.dealPatterns(patterns)
 		if err != nil {
@@ -197,13 +197,13 @@ func (u *Upgrade) upgrade() error {
 		}
 	}
 
-	//change the owner of the entire folder
+	// Change the owner of the entire folder
 	err := afis.ChownDirR(u.Dir, u.OsUser)
 	if err != nil {
 		return errors.WithStack(NewPathError(u.Dir, err.Error()))
 	}
 
-	//change permissions for the entire folder
+	// Change permissions for the entire folder
 	err = afis.ChmodDirR(u.Dir, 0755)
 	if err != nil {
 		return errors.WithStack(NewPathError(u.Dir, err.Error()))
@@ -212,7 +212,7 @@ func (u *Upgrade) upgrade() error {
 	return nil
 }
 
-//CodePattern was classified according to directories, files and Patterns
+// CodePattern was classified according to directories, files and Patterns
 func (u *Upgrade) classifyPattern() (patterndirs, patternfiles, patterns []map[string]string) {
 	var pdirs []map[string]string
 	var pfiles []map[string]string
@@ -221,7 +221,7 @@ func (u *Upgrade) classifyPattern() (patterndirs, patternfiles, patterns []map[s
 	log.Slogger.Debugf("ExecutePattern:%+v", u.executepattern)
 	for _, cp := range u.executepattern {
 		codepath := path.Join(u.Dir, cp)
-		//Load both the pattern absolute path and the relative path into the map
+		// Load both the pattern absolute path and the relative path into the map
 		dm := make(map[string]string)
 		dm["codepattern"] = cp
 		dm["codepath"] = codepath
@@ -234,16 +234,16 @@ func (u *Upgrade) classifyPattern() (patterndirs, patternfiles, patterns []map[s
 			pfiles = append(pfiles, dm)
 			continue
 		}
-		//load the path that is neither a directory nor a file (real pattern) into the ppatterns
+		// Load the path that is neither a directory nor a file (real pattern) into the ppatterns
 		ppatterns = append(ppatterns, dm)
 	}
 	return pdirs, pfiles, ppatterns
 }
 
-//Process directories in patterns
+// Process directories in patterns
 func (u *Upgrade) dealPatternDirs(pdirs []map[string]string) error {
 	for _, pd := range pdirs {
-		//Check if the owner matches
+		// Check if the owner matches
 		if !afis.CheckFileOwner(pd["codepath"], u.OsUser) {
 			return errors.WithStack(NewFileOwnerError(pd["codepath"], u.OsUser, "file and owner does not match"))
 		}
@@ -251,7 +251,7 @@ func (u *Upgrade) dealPatternDirs(pdirs []map[string]string) error {
 		if err != nil {
 			return errors.WithStack(NewdealPatternError(u.OsUser, "", pd["codepath"], err.Error()))
 		}
-		//copy direactory
+		// Copy direactory
 		src := filepath.Join(u.tmpdir, u.ModuleName, pd["codepattern"])
 		err = afis.CopyDir(src, pd["codepath"])
 		if err != nil {
@@ -261,10 +261,10 @@ func (u *Upgrade) dealPatternDirs(pdirs []map[string]string) error {
 	return nil
 }
 
-//Process files in patterns
+// Process files in patterns
 func (u *Upgrade) dealPatternFiles(pfiles []map[string]string) error {
 	for _, pf := range pfiles {
-		//Check if the owner matches
+		// Check if the owner matches
 		if !afis.CheckFileOwner(pf["codepath"], u.OsUser) {
 			return errors.WithStack(NewFileOwnerError(pf["codepath"], u.OsUser, "file and owner does not match"))
 		}
@@ -272,7 +272,7 @@ func (u *Upgrade) dealPatternFiles(pfiles []map[string]string) error {
 		if err != nil {
 			return errors.WithStack(NewdealPatternError(u.OsUser, "", pf["codepath"], err.Error()))
 		}
-		//copy file
+		// Copy file
 		src := filepath.Join(u.tmpdir, u.ModuleName, pf["codepattern"])
 		err = afis.CopyFile(src, pf["codepath"])
 		if err != nil {
@@ -282,24 +282,24 @@ func (u *Upgrade) dealPatternFiles(pfiles []map[string]string) error {
 	return nil
 }
 
-//Process patterns
+// Process patterns
 func (u *Upgrade) dealPatterns(ppatterns []map[string]string) error {
 	var pdirs []map[string]string
 	var pfiles []map[string]string
 	for _, pp := range ppatterns {
 		basedir := filepath.Dir(pp["codepath"])
-		//just walk current pattern's root dir for once, and process according to file and directory
+		// Only walk current pattern's root dir for once, and process according to file and directory
 		err := afis.WalkOnce(basedir, func(path string, info os.FileInfo, err1 error) error {
 			if err1 != nil {
 				return errors.WithStack(NewdealPatternError(u.OsUser, "", basedir, err1.Error()))
 			}
-			//Check whether the path matches the pattern
+			// Check whether the path matches the pattern
 			ism, err2 := filepath.Match(pp["codepath"], path)
 
 			if err2 != nil {
 				return errors.WithStack(NewdealPatternError(u.OsUser, pp["codepath"], path, err2.Error()))
 			}
-			//classify according to directories, files
+			// Classify according to directories, files
 			if ism {
 				dm := make(map[string]string)
 				dm["codepattern"] = filepath.Join(filepath.Dir(pp["codepattern"]), filepath.Base(path))
@@ -323,12 +323,12 @@ func (u *Upgrade) dealPatterns(ppatterns []map[string]string) error {
 	}
 	log.Slogger.Debugw("The paths have been matched:", "dirs", pdirs,
 		"files", pfiles)
-	//Process the matched directories
+	// Process the matched directories
 	err := u.dealPatternDirs(pdirs)
 	if err != nil {
 		return err
 	}
-	//Process the matched files
+	// Process the matched files
 	err = u.dealPatternFiles(pfiles)
 	if err != nil {
 		return err
@@ -336,43 +336,43 @@ func (u *Upgrade) dealPatterns(ppatterns []map[string]string) error {
 	return nil
 }
 
-//backup and upload
+// Backup and upload
 func (u *Upgrade) backup() error {
-	//build filename
+	// build filename
 	filename := filepath.Base(u.Dir) + time.Now().Format("20060102150405.00000") + ".zip"
-	//build dst file path
+	// build dst file path
 	dst := filepath.Join(common.TempBackupPath, filename)
-	//build upload path
+	// build upload path
 	upath := filepath.Join(common.AgentID, u.ServiceID)
-	//backup and upload
+	// backup and upload
 	err := u.backupService(dst, upath)
 
 	if err != nil {
 		return err
 	}
-	//build filepath with name that reside on file server
+	// build filepath with name that reside on file server
 	remoteFilePath := filepath.Join(upath, filename)
-	//local version file which contains remoteFilePath
+	// local version file which contains remoteFilePath
 	versionFile := filepath.Join(u.Dir, common.PathFile)
 	err = ioutil.WriteFile(versionFile, []byte(remoteFilePath), 0644)
 
 	if err != nil {
 		return errors.WithStack(err)
 	}
-	//change owner
+	// change owner
 	err = afis.ChownFile(versionFile, u.OsUser)
 
 	if err != nil {
 		return errors.WithStack(err)
 	}
-	//record temporary backup file for rolling back
+	// record temporary backup file for rolling back
 	u.backfile = dst
 	return nil
 }
 
-//rollback
+// Rollback
 func (u *Upgrade) rollBack() error {
-	//Check if the owner matches
+	// Check if the owner matches
 	if !afis.CheckFileOwner(u.Dir, u.OsUser) {
 		return errors.WithStack(NewFileOwnerError(u.Dir, u.OsUser, "file and owner does not match"))
 	}
@@ -380,7 +380,7 @@ func (u *Upgrade) rollBack() error {
 	if err != nil {
 		return errors.WithStack(err)
 	}
-	//unzip temporary backup file to basedir
+	// unzip temporary backup file to basedir
 	basedir := filepath.Dir(u.Dir)
 	err = afis.Unzip(u.backfile, basedir)
 	if err != nil {

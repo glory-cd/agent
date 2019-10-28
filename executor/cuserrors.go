@@ -15,7 +15,6 @@ const (
 	stepNameGetPid          = "getpid"
 	stepNameStart           = "start"
 	stepNameStop            = "stop"
-	stepNameRestart         = "restart"
 )
 
 type CoulsonError interface {

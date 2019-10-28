@@ -7,16 +7,16 @@ import (
 )
 
 func Run(){
-	//将agent注册到etcd
+	// Register the agent to etcd
 	go startRegister()
 
-	//订阅redis通道以接收指令
+	// Subscribe redis channel to receive instructions
 	go subscribeCMDChannel()
 
-	//启动restful处理注册行为
+	// Start the restful goroutine to process registration behavior
 	go startRestful()
 
-	//开始监听Grace信号
+	// Start listening for Grace signals
 	gracefulHandle()
 }
 
@@ -35,7 +35,8 @@ func startRegister() {
 
 }
 
-//分别订阅信号监听和指令处理消息通道
+// Subscribe signal channel
+// and instruction channel
 func subscribeCMDChannel() {
 	go common.RedisConn.SubscribeChannel(CurAgent.InstructionChannel, dealReceiveInstruction)
 	go common.RedisConn.SubscribeChannel(CurAgent.GraceChannel, dealReceiveGraceCMD)

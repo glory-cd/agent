@@ -9,16 +9,16 @@ import (
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
-//设置命令行Flag
+// Set the command line Flag
 var (
 	etcdAddress = kingpin.Flag("etcd", "ETCD address to connect.").Short('e').Required().String()
 )
 
 func main() {
-	kingpin.Version("Version: 0.0.1")
+	kingpin.Version("Version: 0.0.13")
 	kingpin.Parse()
-	//初始化服务
+	// Initialize
 	core.InitAgent(*etcdAddress)
-	//服务运行
+	// Run
 	core.Run()
 }
