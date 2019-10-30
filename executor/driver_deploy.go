@@ -44,22 +44,21 @@ func (d *Deploy) Exec(out chan<- Result) {
 	}
 
 	// Download the code
-	codedir, err := d.getCode()
+	err = d.downloadCode()
 	if err != nil {
-		d.rs.AppendFailedStep(stepNameGetCode, err)
 		return
 	}
-	d.tempdir = codedir
-	d.rs.AppendSuccessStep(stepNameGetCode)
 
 	// Perform the deployment
 	err = d.deploy()
 	if err != nil {
-		d.rs.AppendFailedStep(stepNameDeploy, err)
 		return
 	}
-	d.rs.AppendSuccessStep(stepNameDeploy)
-
+	// Register the service
+	err = d.register()
+	if err != nil {
+		return
+	}
 }
 
 func (d *Deploy) deferHandleFunc(err *error, out chan<- Result) {
@@ -96,8 +95,16 @@ func (d *Deploy) deferHandleFunc(err *error, out chan<- Result) {
 
 // Deploy the service
 func (d *Deploy) deploy() error {
+	var err error
+	defer func() {
+		if err != nil {
+			d.rs.AppendFailedStep(stepNameDeploy, err)
+		} else {
+			d.rs.AppendSuccessStep(stepNameDeploy)
+		}
+	}()
 	// Create the service directory
-	err := os.Mkdir(d.Dir, 0755)
+	err = os.Mkdir(d.Dir, 0755)
 	if err != nil {
 		return errors.WithStack(NewPathError(d.Dir, err.Error()))
 	}
@@ -141,7 +148,7 @@ func (d *Deploy) checkenv() error {
 	return nil
 }
 
-func (d *Deploy) createUser() error{
+func (d *Deploy) createUser() error {
 	var err error
 	defer func() {
 		if err != nil {
@@ -157,7 +164,7 @@ func (d *Deploy) createUser() error{
 	}
 
 	options := []string{"-m"}
-	if d.UserPass != ""{
+	if d.UserPass != "" {
 		withpass := []string{"-p", d.UserPass}
 		options = append(options, withpass...)
 	}
@@ -198,6 +205,42 @@ func (d *Deploy) initenv() error {
 	d.rs.AppendSuccessStep(stepNameCreateTmpDir)
 	d.tempdir = dir
 	log.Slogger.Infof("temp dir is : %s", d.tempdir)
+
+	return nil
+}
+
+// Download the code
+func (d *Deploy) downloadCode() error {
+	codedir, err := d.getCode()
+	if err != nil {
+		d.rs.AppendFailedStep(stepNameGetCode, err)
+		return err
+	}
+	d.tempdir = codedir
+	d.rs.AppendSuccessStep(stepNameGetCode)
+	return nil
+}
+
+//register this service to etcd
+func (d *Deploy) register() error {
+	var err error
+	defer func() {
+		if err != nil {
+			d.rs.AppendFailedStep(stepNameRegister, err)
+		} else {
+			d.rs.AppendSuccessStep(stepNameRegister)
+		}
+	}()
+	// Achieve the path of register script
+	cmdMetaScript, err := d.getMetaScript()
+	if err != nil {
+		return err
+	}
+	// Run the registration script
+	err = d.runCMD(cmdMetaScript)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

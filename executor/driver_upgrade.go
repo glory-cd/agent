@@ -112,12 +112,12 @@ func (u *Upgrade) checkenv() error {
 
 	log.Slogger.Debugf("CustomPattern and CodePattern:%+v, %d, %+v, %d", u.CustomPattern, len(u.CustomPattern), u.CodePattern, len(u.CodePattern))
 
-	if afis.ContainsString(u.CodePattern, "") || afis.ContainsString(u.CustomPattern, "") {
+	if afis.ContainsString(u.CodePattern, "") || (afis.ContainsString(u.CustomPattern, "") && len(u.CustomPattern) > 1) {
 		log.Slogger.Errorf("Pattern has empty string.")
 		return errors.New("pattern has empty string")
 	}
 
-	if u.CustomPattern != nil {
+	if u.CustomPattern != nil && !afis.ContainsString(u.CustomPattern, ""){
 		u.executepattern = u.CustomPattern
 	} else {
 		u.executepattern = u.CodePattern

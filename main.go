@@ -15,7 +15,7 @@ var (
 )
 
 func main() {
-	kingpin.Version("Version: 0.0.13")
+	kingpin.Version("Version: 0.0.16")
 	kingpin.Parse()
 	// Initialize
 	core.InitAgent(*etcdAddress)
