@@ -44,14 +44,14 @@ jobs:
           asset_content_type: application/zip
 
       - name: Upload Release x64 linux
-          uses: actions/upload-release-asset@v1.0.1
-          env:
-            ACTION_RELEASE_KEY: ${{ secrets.ACTION_RELEASE_KEY }}
-          with:
-            upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
-            asset_path: ./agent-linux-x64
-            asset_name: agent-${{ steps.create_release.outputs.tag }}-linux-x64
-            asset_content_type: application/zip
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          ACTION_RELEASE_KEY: ${{ secrets.ACTION_RELEASE_KEY }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
+          asset_path: ./agent-linux-x64
+          asset_name: agent-${{ steps.create_release.outputs.tag }}-linux-x64
+          asset_content_type: application/zip
 
       - name: Upload Release x86 darwin
         uses: actions/upload-release-asset@v1.0.1
@@ -64,11 +64,11 @@ jobs:
           asset_content_type: application/zip
 
       - name: Upload Release x64 darwin
-          uses: actions/upload-release-asset@v1.0.1
-          env:
-            ACTION_RELEASE_KEY: ${{ secrets.ACTION_RELEASE_KEY }}
-          with:
-            upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
-            asset_path: ./agent-darwin-x64
-            asset_name: agent-${{ steps.create_release.outputs.tag }}-darwin-x64
-            asset_content_type: application/zip
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          ACTION_RELEASE_KEY: ${{ secrets.ACTION_RELEASE_KEY }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
+          asset_path: ./agent-darwin-x64
+          asset_name: agent-${{ steps.create_release.outputs.tag }}-darwin-x64
+          asset_content_type: application/zip
