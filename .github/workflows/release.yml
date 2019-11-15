@@ -1,0 +1,74 @@
+name: Rlease
+
+on:
+  push:
+    # Sequence of patterns matched against refs/tags
+    tags:
+      - "v*" # Push events to matching v*, i.e. v1.0, v20.15.10
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v1
+      - name: Use Golang
+        uses: actions/setup-go@v1
+        with:
+          go-version: "1.13.x"
+      - name: Build normal
+        run: |
+          CGO_ENABLED=0 GOOS=linux GOARCH=386 go build -o agent-linux-x86
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o agent-linux-x64
+          CGO_ENABLED=0 GOOS=darwin GOARCH=386 go build -o agent-darwin-x86
+          CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o agent-darwin-x64
+      - name: Create Release
+        id: create_release
+        uses: monkeyWie/create-release@master
+        env:
+          ACTION_RELEASE_KEY: ${{ secrets.ACTION_RELEASE_KEY }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: true
+
+      - name: Upload Release x86 linux
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          ACTION_RELEASE_KEY: ${{ secrets.ACTION_RELEASE_KEY }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
+          asset_path: ./agent-linux-x86
+          asset_name: agent-${{ steps.create_release.outputs.tag }}-linux-x86
+          asset_content_type: application/zip
+
+      - name: Upload Release x64 linux
+          uses: actions/upload-release-asset@v1.0.1
+          env:
+            ACTION_RELEASE_KEY: ${{ secrets.ACTION_RELEASE_KEY }}
+          with:
+            upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
+            asset_path: ./agent-linux-x64
+            asset_name: agent-${{ steps.create_release.outputs.tag }}-linux-x64
+            asset_content_type: application/zip
+
+      - name: Upload Release x86 darwin
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          ACTION_RELEASE_KEY: ${{ secrets.ACTION_RELEASE_KEY }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
+          asset_path: ./agent-darwin-x86
+          asset_name: agent-${{ steps.create_release.outputs.tag }}-darwin-x86
+          asset_content_type: application/zip
+
+      - name: Upload Release x64 darwin
+          uses: actions/upload-release-asset@v1.0.1
+          env:
+            ACTION_RELEASE_KEY: ${{ secrets.ACTION_RELEASE_KEY }}
+          with:
+            upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
+            asset_path: ./agent-darwin-x64
+            asset_name: agent-${{ steps.create_release.outputs.tag }}-darwin-x64
+            asset_content_type: application/zip
