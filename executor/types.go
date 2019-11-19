@@ -1,11 +1,12 @@
 package executor
 
-import "github.com/glory-cd/agent/common"
+import (
+	"bytes"
+	"encoding/json"
+	"github.com/glory-cd/agent/common"
+	"github.com/glory-cd/utils/afis"
+)
 
-// Driver interface
-type Drive interface {
-	Exec(out chan<- Result)
-}
 
 // Task identity
 type Identiy struct {
@@ -34,12 +35,6 @@ type Service struct {
 	StopCMD     string   `json:"servicestopcmd"`
 }
 
-// Executor
-type Executor struct {
-	*Task
-	*Service
-}
-
 type User struct{
 	// Uid is the user ID.
 	Uid int
@@ -51,4 +46,25 @@ type User struct{
 	Name string
 	// HomeDir is the path to the user's home directory (if they have one).
 	HomeDir string
+}
+
+// Build a Service with ServiceID from json string
+func NewServiceFromJson(sjson string) (Service, error) {
+	var s Service
+	err := json.Unmarshal([]byte(sjson), &s)
+	if err != nil {
+		return s, err
+	}
+	s.ServiceID = afis.GetMd5String(common.AgentID + s.Dir)
+	return s, nil
+}
+
+// convert Service to json string
+func NewJsonFromService(s Service) (string, error) {
+	jsonb, err := json.Marshal(s)
+	sjson := bytes.NewBuffer(jsonb).String()
+	if err != nil {
+		return "", err
+	}
+	return sjson, nil
 }

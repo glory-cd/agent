@@ -5,7 +5,7 @@
 package main
 
 import (
-	"github.com/glory-cd/agent/core"
+	"github.com/glory-cd/agent/listener"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
@@ -15,10 +15,10 @@ var (
 )
 
 func main() {
-	kingpin.Version("Version: 0.0.16")
+	kingpin.Version("Version: 0.1.0")
 	kingpin.Parse()
 	// Initialize
-	core.InitAgent(*etcdAddress)
+	listener.InitAgent(*etcdAddress)
 	// Run
-	core.Run()
+	listener.Run()
 }

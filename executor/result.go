@@ -25,9 +25,8 @@ type ResultStep struct {
 	ResultTime int64                    `json:"steptime"`
 }
 
-func NewResultPointer(id Identiy) *Result {
+func NewResult() *Result {
 	var r = new(Result)
-	r.Identiy = id
 	r.ReturnCode = common.ReturnCodeSuccess
 	r.ReturnMsg = common.ReturnOKMsg
 	return r

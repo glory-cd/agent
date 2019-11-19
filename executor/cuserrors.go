@@ -3,19 +3,19 @@ package executor
 import "encoding/json"
 
 const (
-	stepNameCheckEnv string = "checkenv"
-	stepNameCreateUser		= "CreateUser"
-	stepNameCreateTmpDir	= "CreateTmpDir"
-	stepNameGetCode         = "getcode"
-	stepNameDeploy          = "deploy"
-	stepNameBackup          = "backup"
-	stepNameUpgrade         = "upgrade"
-	stepNameRoll            = "rollback"
-	stepNameCheck           = "check"
-	stepNameGetPid          = "getpid"
-	stepNameStart           = "start"
-	stepNameStop            = "stop"
-	stepNameRegister		= "register"
+	StepCheckEnv string = "checkenv"
+	StepCreateUser		= "CreateUser"
+	StepCreateTmpDir	= "CreateTmpDir"
+	StepGetCode         = "getcode"
+	StepDeploy          = "deploy"
+	StepBackup          = "backup"
+	StepUpgrade         = "upgrade"
+	StepRoll            = "rollback"
+	StepCheck           = "check"
+	StepGetPid          = "getpid"
+	StepStart           = "start"
+	StepStop            = "stop"
+	StepRegister		= "register"
 )
 
 type CoulsonError interface {
@@ -28,7 +28,7 @@ type pathError struct {
 	errInf string
 }
 
-func kv(ceStruct CoulsonError) string {
+func Kv(ceStruct CoulsonError) string {
 	jsonByte, err := json.Marshal(ceStruct)
 	if err != nil {
 		return err.Error()
@@ -48,31 +48,7 @@ func (p *pathError) Error() string {
 }
 
 func (p *pathError) Kv() string {
-	return kv(p)
-}
-
-type dealPatternError struct {
-	Owner  string `json:"owner"`
-	Src    string `json:"src"`
-	Path   string `json:"path"`
-	errInf string
-}
-
-func NewdealPatternError(thisOwner, thisSrc, thisPath, thisErr string) *dealPatternError {
-	return &dealPatternError{
-		Owner:  thisOwner,
-		Src:    thisSrc,
-		Path:   thisPath,
-		errInf: thisErr,
-	}
-}
-
-func (dp *dealPatternError) Error() string {
-	return dp.errInf
-}
-
-func (dp *dealPatternError) Kv() string {
-	return kv(dp)
+	return Kv(p)
 }
 
 type getCodeError struct {
@@ -92,7 +68,7 @@ func (gc *getCodeError) Error() string {
 }
 
 func (gc *getCodeError) Kv() string {
-	return kv(gc)
+	return Kv(gc)
 }
 
 type fileOwnerError struct {
@@ -114,29 +90,7 @@ func (fo *fileOwnerError) Error() string {
 }
 
 func (fo *fileOwnerError) Kv() string {
-	return kv(fo)
-}
-
-type deployError struct {
-	Src        string `json:"src"`
-	ServiceDir string `json:"servicedir"`
-	errInf     string
-}
-
-func NewDeployError(thissrc, thisdir, thisErr string) *deployError {
-	return &deployError{
-		Src:        thissrc,
-		ServiceDir: thisdir,
-		errInf:     thisErr,
-	}
-}
-
-func (de *deployError) Error() string {
-	return de.errInf
-}
-
-func (de *deployError) Kv() string {
-	return kv(de)
+	return Kv(fo)
 }
 
 type cmdError struct {
@@ -156,5 +110,5 @@ func (ce *cmdError) Error() string {
 }
 
 func (ce *cmdError) Kv() string {
-	return kv(ce)
+	return Kv(ce)
 }
