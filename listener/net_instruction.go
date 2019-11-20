@@ -55,7 +55,23 @@ func dealReceiveInstruction(ins string) {
 		log.Slogger.Errorf("ConvertInsJsonTOTaskObject Err:[%s]", err.Error())
 		return
 	}
-	log.Slogger.Debugf("Recived Instruction task: %+v, service: %+v", *insDriver.Task, *insDriver.Service)
+	log.Slogger.Debugf("Recived Instruction task: %+v, service: %+v",
+		*insDriver.Task, *insDriver.Service)
+
+	dynamicExecutor := getExecutor(insDriver)
+
+	if dynamicExecutor == nil {
+		log.Slogger.Error("Expect to get a concrete executor, but return nil!")
+		return
+	}
+	//execute
+	result := execute(dynamicExecutor)
+
+	publishResult(insDriver.TaskID, result)
+}
+
+// getExecutor instantiates an concrete executor
+func getExecutor(insDriver executor.Driver) Executor {
 
 	var dynamicExecutor Executor
 	switch insDriver.OP {
@@ -72,11 +88,8 @@ func dealReceiveInstruction(ins string) {
 	case common.OperateROL:
 		dynamicExecutor = roll.NewRoll(insDriver)
 	default:
-		return
+		return nil
 	}
 
-	//execute
-	result := execute(dynamicExecutor)
-
-	publishResult(insDriver.TaskID, result)
+	return dynamicExecutor
 }
