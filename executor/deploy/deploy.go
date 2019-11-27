@@ -181,10 +181,6 @@ func (d *Deploy) checkenv(rs *executor.Result) error {
 
 func (d *Deploy) createUser(rs *executor.Result) error {
 	useraddLock.Lock()
-	// return if user has been created
-	if afis.IsUser(d.OsUser) {
-		return nil
-	}
 
 	var err error
 	defer func() {
@@ -196,6 +192,11 @@ func (d *Deploy) createUser(rs *executor.Result) error {
 
 		useraddLock.Unlock()
 	}()
+
+	// return if user has been created
+	if afis.IsUser(d.OsUser) {
+		return nil
+	}
 
 	cmdText, err := d.GetBinPath("useradd")
 	if err != nil {
