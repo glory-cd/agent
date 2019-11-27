@@ -17,7 +17,10 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"sync"
 )
+
+var useraddLock sync.Mutex
 
 type deployError struct {
 	Src        string `json:"src"`
@@ -47,7 +50,7 @@ type Deploy struct {
 	tempdir string
 }
 
-func NewDeploy (ed executor.Driver) *Deploy {
+func NewDeploy(ed executor.Driver) *Deploy {
 	newd := new(Deploy)
 	newd.Driver = ed
 	return newd
@@ -177,6 +180,12 @@ func (d *Deploy) checkenv(rs *executor.Result) error {
 }
 
 func (d *Deploy) createUser(rs *executor.Result) error {
+	useraddLock.Lock()
+	// return if user has been created
+	if afis.IsUser(d.OsUser) {
+		return nil
+	}
+
 	var err error
 	defer func() {
 		if err != nil {
@@ -184,6 +193,8 @@ func (d *Deploy) createUser(rs *executor.Result) error {
 		} else {
 			rs.AppendSuccessStep(executor.StepCreateUser)
 		}
+
+		useraddLock.Unlock()
 	}()
 
 	cmdText, err := d.GetBinPath("useradd")
@@ -208,6 +219,8 @@ func (d *Deploy) createUser(rs *executor.Result) error {
 		return errors.Wrap(err, errStr)
 	}
 
+	log.Slogger.Infof("create user %s success!", d.OsUser)
+
 	return nil
 }
 
@@ -219,7 +232,6 @@ func (d *Deploy) initenv(rs *executor.Result) error {
 		if err != nil {
 			return err
 		}
-		log.Slogger.Infof("create user %s success!", d.OsUser)
 	} else {
 		log.Slogger.Infof("The user %s already exists!", d.OsUser)
 	}
