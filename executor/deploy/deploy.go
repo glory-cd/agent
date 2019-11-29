@@ -18,9 +18,8 @@ import (
 	"os/exec"
 	"path"
 	"sync"
+	"time"
 )
-
-var useraddLock sync.Mutex
 
 type deployError struct {
 	Src        string `json:"src"`
@@ -46,7 +45,6 @@ func (de *deployError) Kv() string {
 
 type Deploy struct {
 	executor.Driver
-	isuser  bool
 	tempdir string
 }
 
@@ -71,7 +69,7 @@ func (d *Deploy) Exec(rs *executor.Result) {
 	}
 
 	// Initialize user directory, etc
-	err = d.initenv(rs)
+	err = d.initEnv(rs)
 	if err != nil {
 		return
 	}
@@ -165,10 +163,7 @@ func (d *Deploy) deploy(rs *executor.Result) error {
 
 // Check the environment
 func (d *Deploy) checkenv(rs *executor.Result) error {
-	// Check if the user exists
-	if afis.IsUser(d.OsUser) {
-		d.isuser = true
-	}
+
 	// Check if the deployment path already exists and return an error if it does
 	if afis.IsExists(d.Dir) {
 		err := executor.NewPathError(d.Dir, "deploy path already exist")
@@ -179,62 +174,17 @@ func (d *Deploy) checkenv(rs *executor.Result) error {
 	return nil
 }
 
-func (d *Deploy) createUser(rs *executor.Result) error {
-	useraddLock.Lock()
+// Stores a value indicating whether the user is being created
+var syncChain sync.Map
 
-	var err error
-	defer func() {
-		if err != nil {
-			rs.AppendFailedStep(executor.StepCreateUser, err)
-		} else {
-			rs.AppendSuccessStep(executor.StepCreateUser)
-		}
+// initEnv init environment, create user, create temporary directory etc.
+func (d *Deploy) initEnv(rs *executor.Result) error {
 
-		useraddLock.Unlock()
-	}()
+	// Create a user if the user does not exist or wait for completion
+	err := d.initUser(rs)
 
-	// return if user has been created
-	if afis.IsUser(d.OsUser) {
-		return nil
-	}
-
-	cmdText, err := d.GetBinPath("useradd")
 	if err != nil {
-		return errors.WithStack(err)
-	}
-
-	options := []string{"-m"}
-	if d.UserPass != "" {
-		withpass := []string{"-p", d.UserPass}
-		options = append(options, withpass...)
-	}
-	options = append(options, d.OsUser)
-	cmd := exec.Command(cmdText, options...)
-	//Deal with stdout and stderr
-	var stdout, stderr bytes.Buffer
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-	err = cmd.Run()
-	_, errStr := string(stdout.Bytes()), string(stderr.Bytes())
-	if err != nil {
-		return errors.Wrap(err, errStr)
-	}
-
-	log.Slogger.Infof("create user %s success!", d.OsUser)
-
-	return nil
-}
-
-// Initialization environment
-func (d *Deploy) initenv(rs *executor.Result) error {
-	// Create a user if the user does not exist
-	if !d.isuser {
-		err := d.createUser(rs)
-		if err != nil {
-			return err
-		}
-	} else {
-		log.Slogger.Infof("The user %s already exists!", d.OsUser)
+		return err
 	}
 
 	// Create a temporary code directory
@@ -250,7 +200,100 @@ func (d *Deploy) initenv(rs *executor.Result) error {
 	return nil
 }
 
-// Download the code
+// initUser create user if user is not exist
+// If a goroutine is doing creation, wait for it to complete
+// return Timeout error if more than 10 seconds
+func (d *Deploy) initUser(rs *executor.Result) error {
+
+	if afis.IsUser(d.OsUser) {
+		return nil
+	}
+
+	if _, ok := syncChain.LoadOrStore(d.OsUser, 1); !ok {
+		//do task of creating user
+		err := d.createUser(rs)
+
+		if err != nil {
+			return err
+		}
+
+		return nil
+
+	}
+
+	log.Slogger.Debugf("Begin to wait for user [%s] creation to complete.", d.OsUser)
+
+	// check result every 10 ms
+	begin := time.Now()
+	for i := 0; i <= 1000; i++ {
+
+		if afis.IsUser(d.OsUser) {
+
+			log.Slogger.Debugf("Waiting for user [%s] creation took %s .", d.OsUser, time.Since(begin))
+			return nil
+
+		}
+
+		time.Sleep(10 * time.Millisecond)
+	}
+
+	return errors.New("waiting for user creation timeout")
+}
+
+// createUser creates a user on the operating system
+func (d *Deploy) createUser(rs *executor.Result) error {
+
+	begin := time.Now()
+	log.Slogger.Debugf("Begin to create user [%s].", d.OsUser)
+
+	var err error
+	defer func() {
+		if err != nil {
+			rs.AppendFailedStep(executor.StepCreateUser, err)
+		} else {
+			rs.AppendSuccessStep(executor.StepCreateUser)
+		}
+
+		elapsed := time.Since(begin)
+
+		log.Slogger.Debugf("create user elapsed : %s", elapsed)
+	}()
+
+	// return if user has been created
+	if afis.IsUser(d.OsUser) {
+		return nil
+	}
+
+	cmdText, err := d.GetBinPath("useradd")
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	// Assembling useradd's parameters
+	options := []string{"-m"}
+	if d.UserPass != "" {
+		withpass := []string{"-p", d.UserPass}
+		options = append(options, withpass...)
+	}
+	options = append(options, d.OsUser)
+	cmd := exec.Command(cmdText, options...)
+
+	//Deal with stdout and stderr
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+	err = cmd.Run()
+	outStr, errStr := string(stdout.Bytes()), string(stderr.Bytes())
+	if err != nil {
+		return errors.Wrap(err, errStr)
+	}
+
+	log.Slogger.Debugf("create user [%s] success， OUT: %s", d.OsUser, outStr)
+
+	return nil
+}
+
+// downloadCode gets the code from giving url
 func (d *Deploy) downloadCode(rs *executor.Result) error {
 	codedir, err := d.GetCode()
 	if err != nil {
