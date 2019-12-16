@@ -17,7 +17,6 @@ import (
 	"os"
 	"os/exec"
 	"path"
-	"sync"
 	"time"
 )
 
@@ -175,7 +174,7 @@ func (d *Deploy) checkenv(rs *executor.Result) error {
 }
 
 // Stores a value indicating whether the user is being created
-var syncChain sync.Map
+var syncChain *strIntMap
 
 // initEnv init environment, create user, create temporary directory etc.
 func (d *Deploy) initEnv(rs *executor.Result) error {
