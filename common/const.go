@@ -7,14 +7,15 @@ package common
 type OpMode int32
 
 const (
-	OperateDEP OpMode = 1 //deploy
-	OperateUPG OpMode = 2 //upgrade
-	OperateSTA OpMode = 3 //start
-	OperateSHU OpMode = 4 //stop
-	OperateRES OpMode = 5 //restart
-	OperateCHE OpMode = 6 //check
-	OperateBAK OpMode = 7 //backup
-	OperateROL OpMode = 8 //rollback
+	OperateDEP OpMode = 1 // deploy
+	OperateUPG OpMode = 2 // upgrade
+	OperateSTA OpMode = 3 // start
+	OperateSHU OpMode = 4 // stop
+	OperateRES OpMode = 5 // restart
+	OperateCHE OpMode = 6 // check
+	OperateBAK OpMode = 7 // backup
+	OperateROL OpMode = 8 // rollback
+	OperateDEL OpMode = 9 // delete
 )
 
 type ExecuteReturnCode int32

@@ -16,6 +16,7 @@ const (
 	StepStart           = "start"
 	StepStop            = "stop"
 	StepRegister		= "register"
+	StepDelete			= "delete"
 )
 
 type CoulsonError interface {

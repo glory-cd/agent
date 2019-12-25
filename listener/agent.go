@@ -125,7 +125,7 @@ func (a *Agent) AddService(s executor.Service) {
 	a.Services = append(a.Services, s)
 }
 
-// sync service
+// SyncService syncs the service in memory
 func (a *Agent) SyncService(s executor.Service) {
 	for index, v := range a.Services {
 		if v.ServiceID == s.ServiceID {
@@ -133,6 +133,17 @@ func (a *Agent) SyncService(s executor.Service) {
 			// Consider container/list later
 			a.Services = append(a.Services[:index], a.Services[index+1:]...)
 			a.Services = append(a.Services, s)
+		}
+	}
+}
+
+// RemoveService removes the service from memory
+func (a *Agent) RemoveService(s executor.Service){
+	for index, v := range a.Services {
+		if v.ServiceID == s.ServiceID {
+			// Delete before adding, but slice is not a good choice for deleting.
+			// Consider container/list later
+			a.Services = append(a.Services[:index], a.Services[index+1:]...)
 		}
 	}
 }

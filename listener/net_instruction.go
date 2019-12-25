@@ -11,6 +11,7 @@ import (
 	"github.com/glory-cd/agent/executor"
 	"github.com/glory-cd/agent/executor/backup"
 	"github.com/glory-cd/agent/executor/check"
+	"github.com/glory-cd/agent/executor/delete"
 	"github.com/glory-cd/agent/executor/deploy"
 	"github.com/glory-cd/agent/executor/roll"
 	"github.com/glory-cd/agent/executor/rss"
@@ -87,9 +88,16 @@ func getExecutor(insDriver executor.Driver) Executor {
 		dynamicExecutor = backup.NewBackup(insDriver)
 	case common.OperateROL:
 		dynamicExecutor = roll.NewRoll(insDriver)
+	case common.OperateDEL:
+		dynamicExecutor = delete.NewDelete(insDriver)
 	default:
 		return nil
 	}
 
 	return dynamicExecutor
+}
+
+func annulService() error{
+
+	return nil
 }

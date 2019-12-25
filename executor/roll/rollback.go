@@ -6,7 +6,6 @@ import (
 	"github.com/glory-cd/utils/afis"
 	"github.com/glory-cd/utils/log"
 	"github.com/pkg/errors"
-	"os"
 	"path"
 	"path/filepath"
 )
@@ -83,15 +82,11 @@ func (r *Roll) getCode() error {
 }
 
 func (r *Roll) rollBack() error {
-	//Return error if the file you want to delete belongs to a different user
-	if !afis.CheckFileOwner(r.Dir, r.OsUser) {
-		return errors.WithStack(executor.NewFileOwnerError(r.Dir, r.OsUser, "file and owner does not match"))
-	}
-	// Delete the contents of the service directory
-	err := os.RemoveAll(r.Dir)
-	if err != nil {
 
-		return errors.WithStack(err)
+	err := r.DeleteService()
+
+	if err != nil {
+		return err
 	}
 	// Build the path and copy only the contents of the code directory
 	// not including the code directory itself

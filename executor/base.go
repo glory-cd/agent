@@ -50,6 +50,21 @@ func (d *Driver) BackupService(tmpdst, uploadpath string) error {
 	return nil
 }
 
+func (d *Driver) DeleteService() error {
+	//Return error if the file that you want to delete belongs to a different user
+	if !afis.CheckFileOwner(d.Dir, d.OsUser) {
+		return errors.WithStack(NewFileOwnerError(d.Dir, d.OsUser, "file and owner does not match"))
+	}
+	// Delete the whole service directory
+	err := os.RemoveAll(d.Dir)
+	if err != nil {
+
+		return errors.WithStack(err)
+	}
+
+	return nil
+}
+
 // Read the PathFile file and get the backup path in the FileServer
 func (d *Driver) ReadServiceVerion() (string, error) {
 	versionFile := filepath.Join(d.Dir, common.PathFile)

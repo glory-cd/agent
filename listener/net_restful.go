@@ -73,7 +73,7 @@ func DealRecieveService(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-// Put Executor.Service  to etcd in json format
+// writeJson Puts Executor.Service  to etcd in json format
 func writeJson(s executor.Service) error {
 	jsonWithId, err := executor.NewJsonFromService(s)
 	if err != nil {
