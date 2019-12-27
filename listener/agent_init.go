@@ -1,7 +1,4 @@
-/**
-* @Author: xhzhang
-* @Date: 2019-04-19 10:12
- */
+// Package listener handles instruction
 package listener
 
 import (
@@ -11,8 +8,10 @@ import (
 	"strings"
 )
 
+// CurAgent is an runtime agent instance
 var CurAgent *Agent
 
+// InitAgent inits current agent info
 func InitAgent(etc string) {
 	// Initialize agent
 	CurAgent = NewAgent()
@@ -46,7 +45,7 @@ func InitAgent(etc string) {
 
 }
 
-// Get the service that belongs to the current agent from the etcd
+// getServicesFromEtcd gets the service that belongs to the current agent from the etcd
 func getServicesFromEtcd() ([]executor.Service, error) {
 	var servicelist []executor.Service
 	servicesSlice, err := common.EtcdClient.GetWithPrefix(CurAgent.ServicePrefix)
@@ -54,7 +53,7 @@ func getServicesFromEtcd() ([]executor.Service, error) {
 		return nil, err
 	}
 	for _, ser := range servicesSlice {
-		serviceStruct, err := executor.NewServiceFromJson(ser)
+		serviceStruct, err := executor.NewServiceFromJSON(ser)
 		if err != nil {
 			return nil, err
 		}

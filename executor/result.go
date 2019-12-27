@@ -1,7 +1,4 @@
-/**
-* @Author: xhzhang
-* @Date: 2019-04-25 11:13
- */
+// Package executor ...
 package executor
 
 import (
@@ -10,6 +7,8 @@ import (
 	"time"
 )
 
+// Result is a response message to server
+// it is encoded and sent to redis
 type Result struct {
 	Identiy
 	ReturnCode common.ExecuteReturnCode `json:"rcode"`
@@ -17,6 +16,7 @@ type Result struct {
 	StepInfo   []ResultStep             `json:"rsteps"`
 }
 
+// ResultStep contains every step info
 type ResultStep struct {
 	StepNum    int                      `json:"stepnum"`
 	StepName   string                   `json:"stepname"`
@@ -25,6 +25,7 @@ type ResultStep struct {
 	ResultTime int64                    `json:"steptime"`
 }
 
+// NewResult returns a *Result
 func NewResult() *Result {
 	var r = new(Result)
 	r.ReturnCode = common.ReturnCodeSuccess
@@ -32,7 +33,8 @@ func NewResult() *Result {
 	return r
 }
 
-func (r *Result) ToJsonString() (string, error) {
+// ToJSONString encodes a *Result using json
+func (r *Result) ToJSONString() (string, error) {
 	resultbyte, err := json.Marshal(r)
 	if err != nil {
 		return "", err
@@ -41,7 +43,7 @@ func (r *Result) ToJsonString() (string, error) {
 
 }
 
-// Build StepInfo
+// AppendFailedStep appends failed StepInfo to *Result
 func (r *Result) AppendFailedStep(stepname string, err error) {
 	stepstate := common.ReturnCodeFailed
 	stepmsg := err.Error()
@@ -53,6 +55,7 @@ func (r *Result) AppendFailedStep(stepname string, err error) {
 	r.StepInfo = append(r.StepInfo, s)
 }
 
+// AppendSuccessStep appends sucess StepInfo to *Result
 func (r *Result) AppendSuccessStep(stepname string) {
 	stepstate := common.ReturnCodeSuccess
 	stepmsg := common.ReturnOKMsg

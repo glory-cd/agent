@@ -17,12 +17,13 @@ import (
 	"syscall"
 )
 
+// Driver is a base struct of concrete executor
 type Driver struct {
 	*Task
 	*Service
 }
 
-// Backup service dir to temporary file and upload to file server
+// BackupService backups service dir to temporary file and upload to file server
 func (d *Driver) BackupService(tmpdst, uploadpath string) error {
 	// Create if the tmpdst directory does not exist
 	if !afis.IsExists(filepath.Dir(tmpdst)) {
@@ -50,6 +51,7 @@ func (d *Driver) BackupService(tmpdst, uploadpath string) error {
 	return nil
 }
 
+// DeleteService remove the current service which managed by current agent
 func (d *Driver) DeleteService() error {
 	//Return error if the file that you want to delete belongs to a different user
 	if !afis.CheckFileOwner(d.Dir, d.OsUser) {
@@ -65,7 +67,7 @@ func (d *Driver) DeleteService() error {
 	return nil
 }
 
-// Read the PathFile file and get the backup path in the FileServer
+// ReadServiceVerion reads the PathFile file and get the backup path in the FileServer
 func (d *Driver) ReadServiceVerion() (string, error) {
 	versionFile := filepath.Join(d.Dir, common.PathFile)
 	path, err := ioutil.ReadFile(versionFile)
@@ -76,7 +78,7 @@ func (d *Driver) ReadServiceVerion() (string, error) {
 	return strings.TrimSpace(string(path)), nil
 }
 
-// Get the execution path of command
+// GetBinPath gets the execution path of command
 func (d *Driver) GetBinPath(cmd string) (string, error) {
 	var cmdpath string
 
@@ -98,7 +100,7 @@ func (d *Driver) GetBinPath(cmd string) (string, error) {
 	return cmdpath, nil
 }
 
-// Download code from FileServer
+// GetCode downloads code from FileServer
 func (d *Driver) GetCode() (string, error) {
 
 	//download code from url
@@ -112,7 +114,7 @@ func (d *Driver) GetCode() (string, error) {
 	return dir, nil
 }
 
-// Get the meta script path which will be executed
+// GetMetaScript gets the meta script path which will be executed
 func (d *Driver) GetMetaScript() (string, error) {
 
 	cmdBin, err := d.getScriptBinPath()
@@ -165,7 +167,7 @@ func (d *Driver) getScriptBinPath() (string, error) {
 	return cmdScriptPath, nil
 }
 
-// Run the command
+// RunCMD run a gived command
 // If cmdString contains a slash, it is tried directly and the PATH is not consulted.
 // or find the command from PATH
 func (d *Driver) RunCMD(cmdString string) error {
@@ -207,7 +209,7 @@ func (d *Driver) RunCMD(cmdString string) error {
 
 	// Switch os user
 	cmd.SysProcAttr = &syscall.SysProcAttr{}
-	cmd.SysProcAttr.Credential = &syscall.Credential{Uid: uint32(userInfo.Uid), Gid: uint32(userInfo.Gid)}
+	cmd.SysProcAttr.Credential = &syscall.Credential{Uid: uint32(userInfo.UID), Gid: uint32(userInfo.GID)}
 	// Append some environment variables
 	cmd.Env = append(os.Environ(), "HOME="+userInfo.HomeDir, "USER="+userInfo.Username)
 
@@ -215,14 +217,13 @@ func (d *Driver) RunCMD(cmdString string) error {
 
 	log.Slogger.Debugf("stdout:\n%s", string(out))
 	if err != nil {
-		return errors.WithStack(NewCmdError(cmdString, err.Error()))
+		return errors.WithStack(NewCMDError(cmdString, err.Error()))
 	}
 
 	return nil
 }
 
-
-// Achieve  userinfo
+// getUserInfo achieves user information from operating system
 func (d *Driver) getUserInfo() (userInfo *User, err error) {
 	suser, err := user.Lookup(d.OsUser)
 	if err != nil {
@@ -239,8 +240,8 @@ func (d *Driver) getUserInfo() (userInfo *User, err error) {
 	}
 
 	userInfo = new(User)
-	userInfo.Uid = uid
-	userInfo.Gid = gid
+	userInfo.UID = uid
+	userInfo.GID = gid
 	userInfo.Name = suser.Name
 	userInfo.Username = suser.Username
 	userInfo.HomeDir = suser.HomeDir

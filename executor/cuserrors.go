@@ -2,33 +2,37 @@ package executor
 
 import "encoding/json"
 
+// string const for operation step name
 const (
-	StepCheckEnv string = "checkenv"
-	StepCreateUser		= "CreateUser"
-	StepCreateTmpDir	= "CreateTmpDir"
-	StepGetCode         = "getcode"
-	StepDeploy          = "deploy"
-	StepBackup          = "backup"
-	StepUpgrade         = "upgrade"
-	StepRoll            = "rollback"
-	StepCheck           = "check"
-	StepGetPid          = "getpid"
-	StepStart           = "start"
-	StepStop            = "stop"
-	StepRegister		= "register"
-	StepDelete			= "delete"
+	StepCheckEnv     string = "checkenv"
+	StepCreateUser          = "CreateUser"
+	StepCreateTmpDir        = "CreateTmpDir"
+	StepGetCode             = "getcode"
+	StepDeploy              = "deploy"
+	StepBackup              = "backup"
+	StepUpgrade             = "upgrade"
+	StepRoll                = "rollback"
+	StepCheck               = "check"
+	StepGetPid              = "getpid"
+	StepStart               = "start"
+	StepStop                = "stop"
+	StepRegister            = "register"
+	StepDelete              = "delete"
 )
 
+// CoulsonError is an error interface which includes Kv() func
 type CoulsonError interface {
 	error
 	Kv() string
 }
 
-type pathError struct {
+// PathError is an error about path
+type PathError struct {
 	Path   string `json:"path"`
 	errInf string
 }
 
+// Kv encodes a CoulsonError
 func Kv(ceStruct CoulsonError) string {
 	jsonByte, err := json.Marshal(ceStruct)
 	if err != nil {
@@ -37,79 +41,90 @@ func Kv(ceStruct CoulsonError) string {
 	return string(jsonByte)
 }
 
-func NewPathError(thisPath, thisErr string) *pathError {
-	return &pathError{
+// NewPathError returns a *pathError
+func NewPathError(thisPath, thisErr string) *PathError {
+	return &PathError{
 		Path:   thisPath,
 		errInf: thisErr,
 	}
 }
 
-func (p *pathError) Error() string {
+func (p *PathError) Error() string {
 	return p.errInf
 }
 
-func (p *pathError) Kv() string {
+// Kv implements CoulsonError
+func (p *PathError) Kv() string {
 	return Kv(p)
 }
 
-type getCodeError struct {
-	Url    string `json:"url"`
+// GetCodeError is error about download
+type GetCodeError struct {
+	URL    string `json:"url"`
 	errInf string
 }
 
-func NewGetCodeError(thisUrl, thisErr string) *getCodeError {
-	return &getCodeError{
-		Url:    thisUrl,
+// NewGetCodeError returns a *getCodeError
+func NewGetCodeError(thisURL, thisErr string) *GetCodeError {
+	return &GetCodeError{
+		URL:    thisURL,
 		errInf: thisErr,
 	}
 }
 
-func (gc *getCodeError) Error() string {
+func (gc *GetCodeError) Error() string {
 	return gc.errInf
 }
 
-func (gc *getCodeError) Kv() string {
+// Kv implements CoulsonError
+func (gc *GetCodeError) Kv() string {
 	return Kv(gc)
 }
 
-type fileOwnerError struct {
+// FileOwnerError is an error about owner
+type FileOwnerError struct {
 	File   string `json:"file"`
 	Owner  string `json:"owner"`
 	errInf string
 }
 
-func NewFileOwnerError(thisfile, thisOwner, thisErr string) *fileOwnerError {
-	return &fileOwnerError{
+// NewFileOwnerError returns a *fileOwnerError
+func NewFileOwnerError(thisfile, thisOwner, thisErr string) *FileOwnerError {
+	return &FileOwnerError{
 		File:   thisfile,
 		Owner:  thisOwner,
 		errInf: thisErr,
 	}
 }
 
-func (fo *fileOwnerError) Error() string {
+func (fo *FileOwnerError) Error() string {
 	return fo.errInf
 }
 
-func (fo *fileOwnerError) Kv() string {
+// Kv implements CoulsonError
+func (fo *FileOwnerError) Kv() string {
 	return Kv(fo)
 }
 
-type cmdError struct {
+// CMDError is an error abut running command
+type CMDError struct {
 	CMD    string `json:"cmd"`
 	errInf string
 }
 
-func NewCmdError(thisCMD, thisErr string) *cmdError {
-	return &cmdError{
+// NewCMDError returns a *CMDError
+func NewCMDError(thisCMD, thisErr string) *CMDError {
+	return &CMDError{
 		CMD:    thisCMD,
 		errInf: thisErr,
 	}
 }
 
-func (ce *cmdError) Error() string {
+func (ce *CMDError) Error() string {
 	return ce.errInf
 }
 
-func (ce *cmdError) Kv() string {
+// Kv implements CoulsonError
+func (ce *CMDError) Kv() string {
 	return Kv(ce)
 }

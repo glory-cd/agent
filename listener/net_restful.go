@@ -17,14 +17,16 @@ func startRestful() {
 	log.Slogger.Fatal(http.ListenAndServe(common.Config().Rest.Addr, router))
 }
 
-// Register handler
+// DealRecieveService handles the service register message
+// If it is a new service, registers directly to etcd
+// If something is changed, then syncs to etcd
 func DealRecieveService(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 	defer func() {
-		if err != nil{
+		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}else{
+		} else {
 			http.Error(w, "Register successful", http.StatusOK)
 		}
 	}()
@@ -37,7 +39,7 @@ func DealRecieveService(w http.ResponseWriter, r *http.Request) {
 	sjson := bytes.NewBuffer(result).String()
 	log.Slogger.Debugf("recive service from script: %s", sjson)
 
-	service, err := executor.NewServiceFromJson(sjson)
+	service, err := executor.NewServiceFromJSON(sjson)
 	if err != nil {
 		log.Slogger.Warn("ServiceJsonToServiceStruct Err:[%s]", err)
 		return
@@ -45,7 +47,7 @@ func DealRecieveService(w http.ResponseWriter, r *http.Request) {
 
 	// If it is a new service, register directly to etcd
 	if !CurAgent.CheckRegisterIsExist(service.ServiceID) {
-		err = writeJson(service)
+		err = writeJSON(service)
 		if err != nil {
 			log.Slogger.Error("Etcd PUT Falied Err:[%s]", err)
 			return
@@ -58,7 +60,7 @@ func DealRecieveService(w http.ResponseWriter, r *http.Request) {
 
 	// If anything changes, sync to etcd
 	if !cmp.Equal(service, CurAgent.GetService(service.ServiceID)) {
-		err = writeJson(service)
+		err = writeJSON(service)
 		if err != nil {
 			log.Slogger.Error("Etcd PUT Falied Err:[%s]", err)
 			return
@@ -73,15 +75,15 @@ func DealRecieveService(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-// writeJson Puts Executor.Service  to etcd in json format
-func writeJson(s executor.Service) error {
-	jsonWithId, err := executor.NewJsonFromService(s)
+// writeJSON Puts Executor.Service  to etcd in json format
+func writeJSON(s executor.Service) error {
+	jsonWithID, err := executor.NewJSONFromService(s)
 	if err != nil {
 		return err
 	}
 
 	key := CurAgent.ServicePrefix + s.ServiceID
-	err = common.EtcdClient.Put(key, jsonWithId)
+	err = common.EtcdClient.Put(key, jsonWithID)
 	if err != nil {
 		return err
 	}

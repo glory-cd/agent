@@ -5,6 +5,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+//Client is a fileserver client
 type Client struct {
 	//source filepath
 	Src string
@@ -15,7 +16,7 @@ type Client struct {
 
 	Handler FileHandler
 	//the username for http basic authorization or FTP.
-	// if s3 is used, Pass is AWSAccessKeyId.
+	// if s3 is used, username is AWSAccessKeyId.
 	User string
 	//the base64.StdEncoding.EncodeToString([]byte(password)) for http basic authorization or FTP.
 	// if s3 is used, Pass is base64.StdEncoding.EncodeToString([]byte(AWSSecretAccessKey)).
@@ -30,12 +31,12 @@ type Client struct {
 }
 
 // Initialize the handler and set up a client for the handler
-func (c *Client) init() error{
+func (c *Client) init() error {
 	switch c.Type {
 	case "http":
-		c.Handler = new(HttpFileHandler)
+		c.Handler = new(HTTPFileHandler)
 	case "ftp":
-		c.Handler = new(FtpFileHandler)
+		c.Handler = new(FTPFileHandler)
 	case "s3":
 		c.Handler = new(S3FileHandler)
 	default:
@@ -47,7 +48,7 @@ func (c *Client) init() error{
 	return nil
 }
 
-// Upload
+// Upload does upload actions
 func (c *Client) Upload() error {
 
 	err := c.init()
@@ -64,7 +65,7 @@ func (c *Client) Upload() error {
 	return nil
 }
 
-// Download
+// Get does download actions
 func (c *Client) Get() (string, error) {
 
 	err := c.init()

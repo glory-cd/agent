@@ -13,12 +13,13 @@ import (
 	"time"
 )
 
-type FtpFileHandler struct {
+// FTPFileHandler implements the FileHandler in the way of FTP
+type FTPFileHandler struct {
 	baseHandler
 }
 
 // Initialize the connection and login
-func (fu *FtpFileHandler) conn() (*ftp.ServerConn, error){
+func (fu *FTPFileHandler) conn() (*ftp.ServerConn, error) {
 	// Connect to FTP server
 	c, err := ftp.Dial(fu.client.Addr, ftp.DialWithTimeout(5*time.Second))
 
@@ -26,7 +27,7 @@ func (fu *FtpFileHandler) conn() (*ftp.ServerConn, error){
 		return nil, errors.WithStack(err)
 	}
 	err = fu.setPass() //Parsing the password
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 	// Login
@@ -37,18 +38,18 @@ func (fu *FtpFileHandler) conn() (*ftp.ServerConn, error){
 	return c, nil
 }
 
-// Upload
-func (fu *FtpFileHandler) Upload() error {
+// Upload does FTP uploads
+func (fu *FTPFileHandler) Upload() error {
 	c, err := fu.conn()
 	if err != nil {
 		return errors.WithStack(err)
 	}
 	// Delay logout and close connections
 	defer func() {
-		if err := c.Quit(); err != nil{
+		if err := c.Quit(); err != nil {
 			log.Slogger.Errorf("FTP Quit error: %s", err.Error())
 		}
-		if err = c.Logout(); err != nil{
+		if err = c.Logout(); err != nil {
 			log.Slogger.Errorf("FTP Login out error: %s", err.Error())
 		}
 	}()
@@ -76,7 +77,7 @@ func (fu *FtpFileHandler) Upload() error {
 	}
 	// delay close fd
 	defer func() {
-		if err := file.Close(); err != nil{
+		if err := file.Close(); err != nil {
 			log.Slogger.Errorf("*File Close Error: %s, File: %s", err.Error(), file.Name())
 		}
 	}()
@@ -90,18 +91,18 @@ func (fu *FtpFileHandler) Upload() error {
 	return nil
 }
 
-// Download
-func (fu *FtpFileHandler) Get() (string, error){
+// Get does FTP downloads
+func (fu *FTPFileHandler) Get() (string, error) {
 	c, err := fu.conn()
 	if err != nil {
 		return "", errors.WithStack(err)
 	}
 	// Delay logout and close connections
 	defer func() {
-		if err := c.Quit(); err != nil{
+		if err := c.Quit(); err != nil {
 			log.Slogger.Errorf("FTP Quit error: %s", err.Error())
 		}
-		if err = c.Logout(); err != nil{
+		if err = c.Logout(); err != nil {
 			log.Slogger.Errorf("FTP Login out error: %s", err.Error())
 		}
 	}()
@@ -141,7 +142,7 @@ func (fu *FtpFileHandler) Get() (string, error){
 	}
 	// delay close fd
 	defer func() {
-		if err := outFile.Close(); err != nil{
+		if err := outFile.Close(); err != nil {
 			log.Slogger.Errorf("*File Close Error: %s, File: %s", err.Error(), outFile.Name())
 		}
 	}()
@@ -166,7 +167,6 @@ func (fu *FtpFileHandler) Get() (string, error){
 	}
 
 	log.Slogger.Debugf("unzip file sucess: %s", filepath.Join(tmpdir, downFile))
-
 
 	return tmpdir, nil
 }

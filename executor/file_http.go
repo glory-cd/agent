@@ -17,7 +17,8 @@ import (
 	"time"
 )
 
-type HttpFileHandler struct {
+// HTTPFileHandler implements the FileHandler in the way of HTTP
+type HTTPFileHandler struct {
 	baseHandler
 
 	// HTTPClient is the http.HTTPClient to use for Get requests.
@@ -25,12 +26,13 @@ type HttpFileHandler struct {
 	HTTPClient *http.Client
 }
 
-func (hu *HttpFileHandler) Upload() error {
+// Upload uploads a file to http file server
+func (hu *HTTPFileHandler) Upload() error {
 
 	begin := time.Now() //Timing begins
 	// set password
 	err := hu.setPass()
-	if err != nil{
+	if err != nil {
 		return err
 	}
 	// open file
@@ -41,7 +43,7 @@ func (hu *HttpFileHandler) Upload() error {
 	}
 	// delay tp close fd
 	defer func() {
-		if err := file.Close(); err != nil{
+		if err := file.Close(); err != nil {
 			log.Slogger.Errorf("*File Close Error: %s, File: %s", err.Error(), file.Name())
 		}
 	}()
@@ -61,9 +63,9 @@ func (hu *HttpFileHandler) Upload() error {
 		return errors.WithStack(err)
 	}
 
-	log.Slogger.Debugf("upload request url : %s \n", hu.newPostUrl())
+	log.Slogger.Debugf("upload request url : %s \n", hu.newPostURL())
 	// Create an HTTP request
-	req, err := http.NewRequest("POST", hu.newPostUrl(), body)
+	req, err := http.NewRequest("POST", hu.newPostURL(), body)
 
 	if err != nil {
 		return errors.WithStack(err)
@@ -94,19 +96,20 @@ func (hu *HttpFileHandler) Upload() error {
 
 	}
 
-	elapsed := time.Since(begin)//End of the timing
+	elapsed := time.Since(begin) //End of the timing
 
 	log.Slogger.Infof("Upload elapsed: ", elapsed)
 
 	return nil
 }
 
-func (hu *HttpFileHandler) Get() (string, error){
+// Get downloads a file from http file server
+func (hu *HTTPFileHandler) Get() (string, error) {
 
 	begin := time.Now() //Timing begins
 	//set password
 	err := hu.setPass()
-	if err != nil{
+	if err != nil {
 		return "", err
 	}
 	// Create temporary storage folders
@@ -115,10 +118,10 @@ func (hu *HttpFileHandler) Get() (string, error){
 		return "", errors.WithStack(NewPathError("/tmp/http_", err.Error()))
 	}
 	// Get the code from the url
-	log.Slogger.Debugf("download from %s", hu.newPostUrl())
-	err = afis.DownloadCode(tmpdir, hu.newPostUrl())
+	log.Slogger.Debugf("download from %s", hu.newPostURL())
+	err = afis.DownloadCode(tmpdir, hu.newPostURL())
 	if err != nil {
-		return "", errors.WithStack(NewGetCodeError(hu.newPostUrl(), err.Error()))
+		return "", errors.WithStack(NewGetCodeError(hu.newPostURL(), err.Error()))
 	}
 
 	elapsed := time.Since(begin) //End of the timing
@@ -129,7 +132,7 @@ func (hu *HttpFileHandler) Get() (string, error){
 }
 
 //Build url.URL
-func (hu *HttpFileHandler) newPostUrl() string {
+func (hu *HTTPFileHandler) newPostURL() string {
 	requestURL := new(url.URL)
 
 	requestURL.Scheme = "http"

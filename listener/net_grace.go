@@ -41,11 +41,11 @@ func gracefulHandle() {
 }
 
 // Handling functions for grace instructions
-func dealReceiveGraceCMD(graceJson string) {
+func dealReceiveGraceCMD(graceJSON string) {
 
 	m := make(map[string]interface{})
 
-	err := json.Unmarshal([]byte(graceJson), &m)
+	err := json.Unmarshal([]byte(graceJSON), &m)
 
 	if err != nil {
 		log.Slogger.Errorf("ConvertGraceJsonTOMapObject Err:[%s]", err.Error())

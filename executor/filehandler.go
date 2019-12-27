@@ -2,6 +2,7 @@ package executor
 
 import "github.com/glory-cd/agent/common"
 
+// FileHandler is an interface that specifies how files are handled
 type FileHandler interface {
 	// upload file to file server
 	Upload() error
@@ -13,7 +14,8 @@ type FileHandler interface {
 	SetClient(*Client)
 }
 
-//src is file absolute path, path is a path without filename
+// Upload builds a file client and calls Upload func
+// src is file absolute path, path is a path without filename
 func Upload(fs *common.StoreServer, src, path string) error {
 	return (&Client{
 		Src:          src,
@@ -27,7 +29,8 @@ func Upload(fs *common.StoreServer, src, path string) error {
 	}).Upload()
 }
 
-//path is a path with filename
+// Get builds a file client and calls Get func
+// path is a path with filename
 func Get(fs *common.StoreServer, path string) (string, error) {
 	return (&Client{
 		Addr:         fs.Addr,

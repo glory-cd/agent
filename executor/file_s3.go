@@ -16,6 +16,7 @@ import (
 	"time"
 )
 
+// S3FileHandler implements the FileHandler in the way of s3
 type S3FileHandler struct {
 	baseHandler
 	session *session.Session
@@ -41,6 +42,7 @@ func (sss *S3FileHandler) init() error {
 	return nil
 }
 
+// Upload uploads a file to s3
 func (sss *S3FileHandler) Upload() error {
 	err := sss.init()
 	if err != nil {
@@ -79,6 +81,7 @@ func (sss *S3FileHandler) Upload() error {
 	return nil
 }
 
+// Get downloads a file from s3
 func (sss *S3FileHandler) Get() (string, error) {
 
 	err := sss.init()

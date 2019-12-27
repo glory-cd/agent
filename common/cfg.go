@@ -68,7 +68,7 @@ func InitConfig() {
 	}
 
 	if len(configContent) == 0 {
-		NewConfigInEtcd(&configContent)
+		newConfigInEtcd(&configContent)
 	}
 
 	var c GlobalConfig
@@ -85,7 +85,7 @@ func InitConfig() {
 }
 
 // Create a new configuration in the etcd
-func NewConfigInEtcd(content *map[string]string) {
+func newConfigInEtcd(content *map[string]string) {
 	temp, err := EtcdClient.Get(ConfigTemplate, false)
 
 	if err != nil {

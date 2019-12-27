@@ -1,7 +1,4 @@
-/**
-* @Author: xhzhang
-* @Date: 2019-04-19 10:25
- */
+// Package listener handles instruction
 package listener
 
 import (
@@ -27,12 +24,12 @@ type Executor interface {
 }
 
 // According to different instructions, call the corresponding driver
-func execute(ex Executor) (resultJson string) {
+func execute(ex Executor) (resultJSON string) {
 	result := executor.NewResult()
 	// execute
 	ex.Exec(result)
 	// convert to json
-	resultJson, _ = result.ToJsonString()
+	resultJSON, _ = result.ToJSONString()
 	return
 }
 
@@ -48,7 +45,7 @@ func publishResult(taskid int, re string) {
 	}
 }
 
-//Process received instructions
+// dealReceiveInstruction handles received instructions
 func dealReceiveInstruction(ins string) {
 	var insDriver executor.Driver
 	err := json.Unmarshal([]byte(ins), &insDriver)
@@ -97,7 +94,7 @@ func getExecutor(insDriver executor.Driver) Executor {
 	return dynamicExecutor
 }
 
-func annulService() error{
+func annulService() error {
 
 	return nil
 }

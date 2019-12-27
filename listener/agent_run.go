@@ -6,7 +6,8 @@ import (
 	"github.com/glory-cd/utils/log"
 )
 
-func Run(){
+// Run will starts main goroutine and other three goroutines
+func Run() {
 	// Register the agent to etcd
 	go startRegister()
 
@@ -35,8 +36,7 @@ func startRegister() {
 
 }
 
-// Subscribe signal channel
-// and instruction channel
+// Subscribe signal channel and instruction channel
 func subscribeCMDChannel() {
 	go common.RedisConn.SubscribeChannel(CurAgent.InstructionChannel, dealReceiveInstruction)
 	go common.RedisConn.SubscribeChannel(CurAgent.GraceChannel, dealReceiveGraceCMD)
