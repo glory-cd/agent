@@ -17,7 +17,7 @@ require (
 	github.com/shirou/gopsutil v2.18.12+incompatible
 	github.com/shirou/w32 v0.0.0-20160930032740-bb4de0191aa4 // indirect
 	github.com/ulikunitz/xz v0.5.6 // indirect
-	golang.org/x/sys v0.0.0-20190712062909-fae7ac547cb7 // indirect
+	golang.org/x/sys v0.1.0 // indirect
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 )
 
